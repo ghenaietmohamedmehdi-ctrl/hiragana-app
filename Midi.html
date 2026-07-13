@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mehdi San | Learn Hiragana</title>
+<title>Mehdi San | Village Hiragana Quest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-dark: #0f0a15;
-    --card-dark: #1b1326;
-    --purple-path: #8a2be2;
+    --bg-dark: #0b0712;
+    --card-dark: #160f24;
+    --village-grass: #112616;
+    --gravel-path: #3a2b54;
     --purple-glow: #bd7eff;
     --text-light: #f1e8fcd8;
     --text-bright: #ffffff;
@@ -25,282 +26,293 @@
   body, html { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-light); font-family: var(--font-en); min-height: 100vh; overflow-x: hidden; }
   button, input { font-family: inherit; }
 
-  /* ---- Topbar ---- */
+  /* ---- Topbar Elements Aligned Side-by-Side ---- */
   .topbar {
     position: sticky; top: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 24px; background: rgba(27, 19, 38, 0.95);
-    border-bottom: 3px solid #2d1f3f; backdrop-filter: blur(8px);
+    padding: 12px 20px; background: rgba(22, 15, 36, 0.95);
+    border-bottom: 3px solid #25183a; backdrop-filter: blur(8px);
   }
-  .logo { font-family: var(--font-ja); font-weight: 900; font-size: 22px; color: var(--gold); text-shadow: 0 0 8px rgba(255,234,0,0.4); }
-  .stats { display: flex; gap: 14px; }
+  .logo { font-family: var(--font-ja); font-weight: 900; font-size: 20px; color: var(--gold); text-shadow: 0 0 8px rgba(255,234,0,0.3); }
+  
+  /* Horizontal Stats Row Right Next to Each Other */
+  .stats-cluster { display: flex; align-items: center; gap: 8px; }
   .stat-pill {
     display: flex; align-items: center; gap: 6px;
-    background: #251b33; border: 2px solid #423059; border-radius: 16px;
+    background: #201435; border: 2px solid #3c2663; border-radius: 20px;
     padding: 6px 14px; font-weight: 800; font-size: 14px;
   }
-  .stat-pill.xp { color: var(--gold); }
-  .stat-pill.hearts { color: var(--red-error); }
+  .stat-pill.hearts { color: var(--red-error); border-color: rgba(255,23,68,0.4); }
+  .stat-pill.xp { color: var(--gold); border-color: rgba(255,234,0,0.3); }
 
-  main { max-width: 1000px; margin: 0 auto; padding: 20px; }
+  main { max-width: 1000px; margin: 0 auto; padding: 15px; }
 
-  /* ---- View Management ---- */
+  /* ---- View Handler ---- */
   .view { display: none; }
   .view.active { display: block; }
 
-  /* ---- PATH VIEW (Horizontal Custom Scroll) ---- */
-  .path-header { text-align: center; margin: 20px 0 40px; }
-  .path-header h1 { font-family: var(--font-ja); font-weight: 900; color: var(--text-bright); margin: 0; font-size: 28px; }
-  .path-header p { color: #a692bd; margin: 5px 0 0; font-size: 15px; font-weight: 500; }
+  /* ---- MAP VIEW: Gaulish Winding Village Road ---- */
+  .path-header { text-align: center; margin: 15px 0 25px; }
+  .path-header h1 { font-family: var(--font-ja); font-weight: 900; color: var(--text-bright); margin: 0; font-size: 26px; }
+  .path-header p { color: #a490bd; margin: 4px 0 0; font-size: 14px; }
 
-  .path-outer-container {
-    width: 100%; overflow-x: auto; padding: 40px 20px 60px;
-    background: radial-gradient(circle at center, #1e122b 0%, var(--bg-dark) 100%);
-    border-radius: 24px; border: 2px solid #2a1b3d; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+  /* The Map Container simulating a real layout */
+  .village-map-container {
+    width: 100%; background: linear-gradient(135deg, var(--bg-dark) 0%, var(--village-grass) 100%);
+    border-radius: 28px; border: 3px solid #213d28; padding: 30px 20px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6); position: relative;
+    overflow: hidden;
   }
   
-  /* The Animated Bubble Purple Track */
-  .horizontal-path {
-    display: flex; align-items: center; gap: 60px; min-width: max-content;
-    position: relative; padding: 40px 100px;
-    background: linear-gradient(90deg, transparent, var(--purple-path) 10%, var(--purple-path) 90%, transparent);
-    background-size: 200% 100%;
-    animation: smoothGlow 6s linear infinite;
-    border-radius: 50px;
+  /* Decorative elements inside the village map */
+  .village-bg-deco { position: absolute; font-size: 24px; opacity: 0.15; pointer-events: none; }
+
+  /* S-Curve Winding Road Flow Layout */
+  .village-winding-road {
+    display: flex; flex-direction: column; gap: 20px;
+    position: relative; max-width: 500px; margin: 0 auto;
   }
 
-  .horizontal-path::before {
-    content: ''; position: absolute; inset: 0;
-    background-image: radial-gradient(circle, rgba(255,255,255,0.15) 8%, transparent 8%), radial-gradient(circle, rgba(255,255,255,0.1) 12%, transparent 12%);
-    background-size: 80px 80px; background-position: 0 0, 40px 40px;
-    animation: floatBubbles 12s linear infinite;
-    border-radius: 50px; opacity: 0.7; pointer-events: none;
+  /* Road Rows that shift left, center, right to simulate the curved path */
+  .road-row { display: flex; width: 100%; position: relative; padding: 10px 0; }
+  .road-row.pos-left { justify-content: flex-start; padding-left: 20px; }
+  .road-row.pos-center { justify-content: center; }
+  .road-row.pos-right { justify-content: flex-end; padding-right: 20px; }
+
+  /* Visual connecting pathway graphic elements */
+  .road-row::before {
+    content: ''; position: absolute; top: 50%; left: 10%; right: 10%;
+    height: 12px; background: var(--gravel-path); border-radius: 6px;
+    z-index: 1; opacity: 0.4; pointer-events: none;
   }
 
-  @keyframes smoothGlow {
-    0% { box-shadow: 0 0 15px rgba(138,43,226,0.4); }
-    50% { box-shadow: 0 0 30px rgba(189,126,255,0.7); }
-    100% { box-shadow: 0 0 15px rgba(138,43,226,0.4); }
-  }
-  @keyframes floatBubbles {
-    0% { background-position: 0 0, 40px 40px; }
-    100% { background-position: -80px -80px, -40px -40px; }
-  }
-
-  /* Nodes */
-  .node-container { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 5; }
-  .node-btn {
-    width: 96px; height: 96px; border-radius: 50%; border: 4px solid #fff;
-    font-size: 40px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; background: #3c1e70; box-shadow: 0 8px 0 #241047, 0 10px 20px rgba(0,0,0,0.4);
+  /* Hut Nodes */
+  .hut-node-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 5; }
+  
+  .hut-btn {
+    width: 86px; height: 86px; border-radius: 24px; border: 3px solid #fff;
+    font-size: 38px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; background: #4a287c; 
+    box-shadow: 0 6px 0 #2b144d, 0 10px 15px rgba(0,0,0,0.5);
     transition: transform 0.1s, background-color 0.3s;
   }
-  .node-btn:active:not(.locked) { transform: translateY(6px); box-shadow: 0 2px 0 #241047; }
-  .node-btn.locked { background: #423b4c; border-color: #61566e; box-shadow: 0 8px 0 #25222c; cursor: not-allowed; opacity: 0.6; }
-  .node-btn .stars {
-    position: absolute; bottom: -12px; background: #fff; color: #ff9800;
-    border-radius: 12px; font-size: 12px; padding: 2px 8px; font-weight: 800; border: 2px solid #241047;
-  }
-  .node-title { font-weight: 800; margin-top: 16px; font-size: 16px; color: var(--text-bright); text-align: center; }
-  .node-subtitle { font-size: 12px; color: #c3b4d6; font-weight: 600; margin-top: 2px; }
+  .hut-btn:active:not(.locked) { transform: translateY(4px); box-shadow: 0 2px 0 #2b144d; }
+  .hut-btn.locked { background: #3c3547; border-color: #584e63; box-shadow: 0 6px 0 #221d29; cursor: not-allowed; opacity: 0.5; }
   
-  .potion-end {
+  .hut-btn .stars-badge {
+    position: absolute; bottom: -8px; background: #fff; color: #ff9800;
+    border-radius: 10px; font-size: 11px; padding: 1px 6px; font-weight: 800; border: 2px solid #2b144d;
+  }
+  .hut-label { font-weight: 800; margin-top: 10px; font-size: 14px; color: var(--text-bright); text-shadow: 0 2px 4px rgba(0,0,0,0.8); text-align: center; }
+  .hut-host-tag { font-size: 11px; color: #b1a0c7; font-weight: 600; }
+  
+  /* Final Magic Potion Structure at the end of the road */
+  .magic-cauldron-pot {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width: 110px; height: 110px; font-size: 55px; filter: drop-shadow(0 0 12px var(--gold));
-    animation: pulsePotion 2s ease-in-out infinite; cursor: pointer;
+    width: 100px; height: 100px; font-size: 50px; cursor: pointer;
+    filter: drop-shadow(0 0 15px var(--gold)); animation: cauldronWobble 2.5s ease-in-out infinite;
   }
-  @keyframes pulsePotion { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+  @keyframes cauldronWobble { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.08) rotate(3deg); } }
 
-  /* ---- LESSON/VILLAGE VIEW ---- */
+  /* ---- HOUSE HUT INTERIOR VIEW ---- */
   .village-container {
-    background: linear-gradient(180deg, rgba(27, 19, 38, 0.6) 0%, rgba(15, 10, 21, 0.95) 100%), var(--house-bg, #2a1a3a);
-    background-size: cover; background-position: center; border-radius: 24px; padding: 24px;
-    border: 2px solid #423059; margin-top: 10px;
+    background: linear-gradient(180deg, rgba(22, 15, 36, 0.7) 0%, rgba(11, 7, 18, 0.98) 100%), var(--house-bg, #2a1a3a);
+    background-size: cover; background-position: center; border-radius: 24px; padding: 20px;
+    border: 2px solid #3d275c; margin-top: 5px;
   }
-  .back-nav { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .back-nav { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
   .back-btn {
-    background: #3c2a52; border: none; color: #fff; font-size: 18px; font-weight: 700;
-    padding: 8px 16px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 0 #241833;
+    background: #392456; border: none; color: #fff; font-size: 16px; font-weight: 700;
+    padding: 8px 16px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 0 #201433;
   }
-  .back-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #241833; }
-  .house-title { font-family: var(--font-ja); font-size: 24px; font-weight: 900; color: var(--gold); }
+  .back-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #201433; }
+  .house-title { font-family: var(--font-ja); font-size: 22px; font-weight: 900; color: var(--gold); }
 
   .mode-switch { display: flex; gap: 10px; margin-bottom: 20px; }
   .mode-tab {
-    background: #231830; border: 2px solid #4a3563; color: #a795bd; font-weight: 700;
-    padding: 8px 16px; border-radius: 20px; cursor: pointer;
+    flex: 1; background: #1c122b; border: 2px solid #412b5e; color: #a996c2; font-weight: 700;
+    padding: 10px; border-radius: 16px; cursor: pointer; font-size: 14px;
   }
-  .mode-tab.active { background: var(--purple-path); border-color: var(--purple-glow); color: #fff; }
+  .mode-tab.active { background: #602fa6; border-color: var(--purple-glow); color: #fff; }
 
-  .word-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; }
+  .word-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; }
   .word-card {
-    background: var(--card-dark); border: 2px solid #3d2b54; border-radius: 16px;
-    padding: 16px; display: flex; flex-direction: column; align-items: center; position: relative;
-    cursor: pointer; box-shadow: 0 6px 0 #110a17; transition: transform 0.2s;
+    background: var(--card-dark); border: 2px solid #36244f; border-radius: 16px;
+    padding: 14px; display: flex; flex-direction: column; align-items: center; position: relative;
+    cursor: pointer; box-shadow: 0 5px 0 #0d0817; transition: transform 0.2s;
   }
-  .word-card:active { transform: translateY(4px); box-shadow: 0 2px 0 #110a17; }
-  .card-top { display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; }
-  .audio-icon, .fav-icon { background: none; border: none; font-size: 16px; cursor: pointer; opacity: 0.6; }
+  .word-card:active { transform: translateY(3px); box-shadow: 0 2px 0 #0d0817; }
+  .card-top { display: flex; justify-content: space-between; width: 100%; margin-bottom: 6px; }
+  .audio-icon, .fav-icon { background: none; border: none; font-size: 15px; cursor: pointer; opacity: 0.5; }
   .fav-icon.active { opacity: 1; color: var(--gold); }
   .audio-icon:hover { opacity: 1; }
-  .card-emoji { font-size: 36px; margin: 4px 0; }
-  .card-kana { font-family: var(--font-ja); font-size: 26px; font-weight: 900; color: #fff; }
-  .card-romaji { font-size: 14px; color: #b19fc7; font-weight: 700; }
-  .card-meaning { font-size: 15px; color: var(--green-success); font-weight: 700; margin-top: 6px; text-align: center; }
+  .card-emoji { font-size: 32px; margin: 2px 0; }
+  .card-kana { font-family: var(--font-ja); font-size: 24px; font-weight: 900; color: #fff; }
+  .card-romaji { font-size: 13px; color: #b09ec7; font-weight: 700; }
+  .card-meaning { font-size: 14px; color: var(--green-success); font-weight: 700; margin-top: 4px; text-align: center; }
 
-  /* Character Profile Box inside Houses */
   .char-host-box {
-    display: flex; align-items: center; gap: 20px; background: rgba(35, 24, 48, 0.8);
-    border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px dashed #6b4c94;
+    display: flex; align-items: center; gap: 16px; background: rgba(30, 19, 43, 0.85);
+    border-radius: 16px; padding: 14px; margin-bottom: 16px; border: 1px dashed #6b4c94;
   }
-  .char-host-img { width: 70px; height: 70px; border-radius: 50%; background: #4e346b; object-fit: cover; border: 2px solid var(--gold); }
-  .char-host-text h4 { margin: 0; font-size: 16px; color: #fff; }
-  .char-host-text p { margin: 4px 0 0; font-size: 13px; color: #bcaec7; }
+  .char-host-img { width: 64px; height: 64px; border-radius: 50%; background: #452c63; object-fit: cover; border: 2px solid var(--gold); }
+  .char-host-text h4 { margin: 0; font-size: 15px; color: #fff; }
+  .char-host-text p { margin: 2px 0 0; font-size: 12px; color: #bcaec7; }
 
-  /* ---- QUIZ VIEW ---- */
-  .quiz-layout { display: grid; grid-template-columns: 1fr; gap: 20px; }
-  @media(min-width: 768px) { .quiz-layout { grid-template-columns: 280px 1fr; } }
+  /* ---- QUIZ RUNTIME MODULE ---- */
+  .quiz-layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media(min-width: 768px) { .quiz-layout { grid-template-columns: 260px 1fr; } }
   
-  /* Live Character Reaction Component */
   .character-reaction-panel {
-    background: var(--card-dark); border: 2px solid #3d2b54; border-radius: 20px;
+    background: var(--card-dark); border: 2px solid #36244f; border-radius: 20px;
     padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
     box-shadow: 0 8px 16px rgba(0,0,0,0.3); text-align: center;
   }
   .avatar-display {
-    width: 150px; height: 150px; border-radius: 50%; background: #281a38;
-    border: 4px solid var(--purple-path); object-fit: cover; margin-bottom: 16px;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 130px; height: 130px; border-radius: 50%; background: #231736;
+    border: 4px solid #5d2fa3; object-fit: cover; margin-bottom: 12px;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
   .avatar-name { font-weight: 800; font-size: 18px; color: var(--gold); margin: 0; }
-  .avatar-status { font-size: 13px; color: #a291b5; margin: 4px 0 0; font-weight: 600; }
+  .avatar-status { font-size: 13px; color: #9f8eb3; margin: 2px 0 0; font-weight: 600; }
 
-  .quiz-engine { background: var(--card-dark); border: 2px solid #3d2b54; border-radius: 20px; padding: 24px; }
-  .quiz-progress-bar { height: 12px; background: #241830; border-radius: 6px; overflow: hidden; margin-bottom: 20px; }
-  .quiz-progress-fill { height: 100%; background: var(--purple-path); width: 0%; transition: width 0.3s; }
+  .quiz-engine { background: var(--card-dark); border: 2px solid #36244f; border-radius: 20px; padding: 20px; }
+  .quiz-progress-bar { height: 10px; background: #1c1329; border-radius: 5px; overflow: hidden; margin-bottom: 16px; }
+  .quiz-progress-fill { height: 100%; background: #6a32bf; width: 0%; transition: width 0.3s; }
   
   .quiz-question-card {
-    background: #251a36; border: 2px solid #4b3469; border-radius: 16px;
-    padding: 30px 20px; text-align: center; margin-bottom: 24px; position: relative;
+    background: #201630; border: 2px solid #482f6b; border-radius: 16px;
+    padding: 25px 15px; text-align: center; margin-bottom: 20px; position: relative;
   }
-  .q-prompt { font-size: 14px; color: #baa3d4; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-  .q-main { font-family: var(--font-ja); font-size: 46px; font-weight: 900; color: #fff; margin: 12px 0; }
-  .q-sub { font-size: 16px; color: #8c78a3; font-weight: 600; }
-  .q-speak-btn { background: var(--purple-path); border: none; border-radius: 50%; width: 44px; height: 44px; font-size: 18px; color:#fff; cursor:pointer; margin-top:10px; box-shadow: 0 4px 0 #571699;}
+  .q-prompt { font-size: 13px; color: #b69fd1; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .q-main { font-family: var(--font-ja); font-size: 44px; font-weight: 900; color: #fff; margin: 10px 0; }
+  .q-sub { font-size: 15px; color: #88749e; font-weight: 600; }
+  .q-speak-btn { background: #5c2ea1; border: none; border-radius: 50%; width: 42px; height: 42px; font-size: 16px; color:#fff; cursor:pointer; margin-top:8px; box-shadow: 0 4px 0 #411d75;}
   
-  /* Answer Modes */
-  .mc-options { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .mc-options { display: grid; grid-template-columns: 1fr; gap: 10px; }
   .option-btn {
-    background: #2c1d40; border: 2px solid #4a346b; border-radius: 14px;
-    padding: 16px; font-size: 16px; font-weight: 700; color: #fff; cursor: pointer;
-    text-align: center; box-shadow: 0 4px 0 #180f26; transition: all 0.1s;
+    background: #241838; border: 2px solid #432d63; border-radius: 12px;
+    padding: 14px; font-size: 15px; font-weight: 700; color: #fff; cursor: pointer;
+    text-align: center; box-shadow: 0 4px 0 #140d21; transition: all 0.1s;
   }
-  .option-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #180f26; }
+  .option-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #140d21; }
   .option-btn.correct { background: rgba(0,230,118,0.2) !important; border-color: var(--green-success) !important; color: var(--green-success); font-weight: 800; }
   .option-btn.wrong { background: rgba(255,23,68,0.2) !important; border-color: var(--red-error) !important; color: var(--red-error); }
   
-  .typing-option { display: none; flex-direction: column; gap: 12px; }
+  .typing-option { display: none; flex-direction: column; gap: 10px; }
   .text-input {
-    background: #231633; border: 3px solid #4e3370; border-radius: 14px;
-    padding: 16px; font-size: 18px; color: #fff; text-align: center; font-weight: 700;
+    background: #1b1029; border: 3px solid #452c66; border-radius: 12px;
+    padding: 14px; font-size: 17px; color: #fff; text-align: center; font-weight: 700;
   }
   .text-input:focus { outline: none; border-color: var(--purple-glow); }
   .submit-type-btn {
     background: var(--green-success); color: #000; font-weight: 800; border: none;
-    padding: 16px; border-radius: 14px; font-size: 16px; cursor: pointer; box-shadow: 0 4px 0 #00994f;
+    padding: 14px; border-radius: 12px; font-size: 15px; cursor: pointer; box-shadow: 0 4px 0 #00994f;
   }
 
-  /* Quiz Feedback Screen Bar */
+  /* Fixed Feedback Prompt */
   .feedback-bar {
-    position: fixed; bottom: 0; left: 0; right: 0; padding: 20px;
+    position: fixed; bottom: 0; left: 0; right: 0; padding: 16px;
     display: none; align-items: center; justify-content: space-between;
     border-top: 4px solid #fff; z-index: 200; backdrop-filter: blur(10px);
   }
-  .feedback-bar.correct { display: flex; background: rgba(11, 46, 23, 0.95); border-color: var(--green-success); }
-  .feedback-bar.wrong { display: flex; background: rgba(54, 13, 22, 0.95); border-color: var(--red-error); }
-  .feedback-msg h3 { margin: 0; font-size: 20px; }
-  .feedback-msg p { margin: 4px 0 0; font-size: 14px; color: #dfd5eb; }
+  .feedback-bar.correct { display: flex; background: rgba(9, 41, 20, 0.96); border-color: var(--green-success); }
+  .feedback-bar.wrong { display: flex; background: rgba(48, 10, 19, 0.96); border-color: var(--red-error); }
+  .feedback-msg h3 { margin: 0; font-size: 18px; }
+  .feedback-msg p { margin: 2px 0 0; font-size: 13px; color: #ddd3e8; }
   .action-btn {
     background: #fff; color: #000; font-weight: 800; border: none;
-    padding: 12px 28px; border-radius: 14px; font-size: 16px; cursor: pointer;
+    padding: 10px 24px; border-radius: 12px; font-size: 15px; cursor: pointer;
   }
 
-  /* ---- FINAL CELEBRATION VIEW ---- */
+  /* ---- CELEBRATION RESULT VIEW ---- */
   .celebration-box {
-    background: radial-gradient(circle at center, #27143d 0%, var(--card-dark) 100%);
-    border: 3px solid var(--gold); border-radius: 28px; padding: 40px 20px;
-    text-align: center; box-shadow: 0 0 30px rgba(255,234,0,0.2);
-    max-width: 600px; margin: 20px auto;
+    background: radial-gradient(circle at center, #24113b 0%, var(--card-dark) 100%);
+    border: 3px solid var(--gold); border-radius: 28px; padding: 35px 15px;
+    text-align: center; box-shadow: 0 0 30px rgba(255,234,0,0.15);
+    max-width: 550px; margin: 15px auto;
   }
-  .potion-grand-display { font-size: 80px; margin-bottom: 20px; animation: floatGrand 3s ease-in-out infinite; }
-  @keyframes floatGrand { 0%,100%{transform: translateY(0);} 50%{transform: translateY(-15px);} }
+  .potion-grand-display { font-size: 70px; margin-bottom: 16px; animation: grandFloat 2.5s ease-in-out infinite; }
+  @keyframes grandFloat { 0%,100%{transform: translateY(0);} 50%{transform: translateY(-12px);} }
   
   /* Hardcoded Pure CSS Algerian Flag */
   .algerian-flag-css {
-    width: 160px; height: 100px; margin: 0 auto 24px;
-    border: 3px solid #fff; box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    width: 150px; height: 95px; margin: 0 auto 20px;
+    border: 3px solid #fff; box-shadow: 0 6px 14px rgba(0,0,0,0.4);
     position: relative; display: flex; overflow: hidden; border-radius: 6px;
   }
   .flag-left { width: 50%; background: #006633; }
   .flag-right { width: 50%; background: #ffffff; }
   .flag-emblem {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
   }
   .flag-crescent {
-    width: 32px; height: 32px; background: transparent; border-radius: 50%;
-    box-shadow: -10px 0px 0 0 #d21d38; position: absolute; left: 8px;
+    width: 30px; height: 30px; background: transparent; border-radius: 50%;
+    box-shadow: -9px 0px 0 0 #d21d38; position: absolute; left: 8px;
   }
   .flag-star {
-    position: absolute; left: 18px; top: 12px;
-    font-size: 20px; color: #d21d38; line-height: 1;
+    position: absolute; left: 17px; top: 10px;
+    font-size: 18px; color: #d21d38; line-height: 1;
   }
 
-  .celebration-box h2 { font-family: var(--font-ja); font-size: 32px; color: #fff; margin: 0 0 10px; }
-  .celebration-msg { font-size: 20px; color: var(--gold); font-weight: 800; margin: 10px 0 24px; padding: 0 10px; }
+  .celebration-box h2 { font-family: var(--font-ja); font-size: 28px; color: #fff; margin: 0 0 8px; }
+  .celebration-msg { font-size: 18px; color: var(--gold); font-weight: 800; margin: 8px 0 20px; }
   
-  .score-row { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; }
-  .score-badge { background: #221530; border: 2px solid #4a3369; padding: 12px 20px; border-radius: 14px; min-width: 110px; }
-  .score-badge big { display: block; font-size: 24px; font-weight: 800; color: #fff; }
-  .score-badge span { font-size: 12px; color: #aa98be; font-weight: 600; }
+  .score-row { display: flex; justify-content: center; gap: 16px; margin-bottom: 25px; }
+  .score-badge { background: #1f1330; border: 2px solid #432e61; padding: 10px 16px; border-radius: 12px; min-width: 105px; }
+  .score-badge big { display: block; font-size: 22px; font-weight: 800; color: #fff; }
+  .score-badge span { font-size: 11px; color: #a694ba; font-weight: 600; }
 
-  .congrats-chars { display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; }
-  .congrats-avatar { width: 65px; height: 65px; border-radius: 50%; border: 2px solid #fff; background: #3d225e; }
+  .congrats-chars { display: flex; justify-content: center; gap: 12px; margin-bottom: 20px; }
+  .congrats-avatar { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #fff; background: #3c205c; }
 
   .home-btn {
-    background: var(--purple-path); color: #fff; border: none; font-weight: 800;
-    padding: 16px 36px; border-radius: 16px; font-size: 16px; cursor: pointer; box-shadow: 0 5px 0 #54198c;
+    background: #602fa6; color: #fff; border: none; font-weight: 800;
+    padding: 14px 32px; border-radius: 14px; font-size: 15px; cursor: pointer; box-shadow: 0 4px 0 #461f7d;
   }
-  .home-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #54198c; }
+  .home-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #461f7d; }
 </style>
 </head>
 <body>
 
+<!-- Aligned side-by-side Top Header -->
 <div class="topbar">
   <div class="logo">⛩️ Mehdi San</div>
-  <div class="stats">
-    <div class="stat-pill xp">⭐ <span id="xp-counter">0</span> XP</div>
+  <div class="stats-cluster">
     <div class="stat-pill hearts">❤️ <span id="hearts-counter">7</span></div>
+    <div class="stat-pill xp">⭐ <span id="xp-counter">0</span> XP</div>
   </div>
 </div>
 
 <main>
 
+  <!-- VIEW 1: WINDING VILLAGE ROAD MAP -->
   <div class="view active" id="view-path">
     <div class="path-header">
-      <h1>Gaulish Hiragana Quest</h1>
-      <p>Explore the village, enter houses, and unlock the Magic Potion!</p>
+      <h1>Gaulish Village Quest</h1>
+      <p>Walk the winding village road, unlock huts, and blend the Magic Potion!</p>
     </div>
-    <div class="path-outer-container">
-      <div class="horizontal-path" id="dynamicPathTrack">
-        </div>
+    
+    <div class="village-map-container">
+      <!-- Ambient decorative icons -->
+      <span class="village-bg-deco" style="top:10%; left:15%;">🌳</span>
+      <span class="village-bg-deco" style="top:40%; right:12%;">🌳</span>
+      <span class="village-bg-deco" style="bottom:20%; left:8%;">🏕️</span>
+      <span class="village-bg-deco" style="bottom:50%; left:45%;">🌲</span>
+
+      <!-- Staggered S-Shape Village Pathway -->
+      <div class="village-winding-road" id="villageRoadWindingTrack">
+        <!-- Generated Dynamically via JS with staggered classes -->
+      </div>
     </div>
   </div>
 
+  <!-- VIEW 2: HUT DETAILS VIEW -->
   <div class="view" id="view-lesson">
     <div class="village-container" id="villageHouseBox">
       <div class="back-nav">
-        <button class="back-btn" id="btnLeaveHouse">← Leave House</button>
+        <button class="back-btn" id="btnLeaveHouse">← Leave Hut</button>
         <div class="house-title" id="houseTitleDisplay">Asterix's Hut</div>
       </div>
 
@@ -308,46 +320,51 @@
         <img src="" class="char-host-img" id="houseHostAvatar" alt="Host">
         <div class="char-host-text">
           <h4 id="houseHostName">Asterix</h4>
-          <p id="houseHostDesc">Welcome to my hut! Review the words here, then start the challenge.</p>
+          <p id="houseHostDesc">Welcome! Review these vocabulary cards inside my hut before hitting the quiz.</p>
         </div>
       </div>
 
       <div class="mode-switch">
-        <button class="mode-tab active" id="tabGridMode">🀄 Word Grid</button>
-        <button class="mode-tab" id="btnStartHouseQuiz">📝 Start House Quiz</button>
+        <button class="mode-tab active" id="tabGridMode">🀄 Vocabulary Grid</button>
+        <button class="mode-tab" id="btnStartHouseQuiz">📝 Challenge Quiz</button>
       </div>
 
       <div class="word-grid" id="lessonWordGrid">
-        </div>
+        <!-- Cards generated dynamically -->
+      </div>
     </div>
   </div>
 
+  <!-- VIEW 3: ACTIVE QUIZ VIEW -->
   <div class="view" id="view-quiz">
     <div class="quiz-layout">
       
+      <!-- Character Reaction Box -->
       <div class="character-reaction-panel">
-        <img src="" class="avatar-display" id="quizReactionAvatar" alt="Reaction Profile">
+        <img src="" class="avatar-display" id="quizReactionAvatar" alt="Profile">
         <h3 class="avatar-name" id="quizAvatarName">Obelix</h3>
         <span class="avatar-status" id="quizAvatarStatus">Watching closely...</span>
       </div>
 
+      <!-- Engine Card -->
       <div class="quiz-engine">
         <div class="quiz-progress-bar">
           <div class="quiz-progress-fill" id="quizProgressFillBar"></div>
         </div>
 
         <div class="quiz-question-card">
-          <span class="q-prompt" id="quizPromptHeading">What does this mean?</span>
+          <span class="q-prompt" id="quizPromptHeading">Question</span>
           <div class="q-main" id="quizQuestionMain">あさ</div>
-          <div class="q-sub" id="quizQuestionSub">a sa</div>
+          <div class="q-sub" id="quizQuestionSub">Sound mapping</div>
           <button class="q-speak-btn" id="quizAudioSpeak">🔊</button>
         </div>
 
         <div class="mc-options" id="quizMultipleChoiceBox">
-          </div>
+          <!-- Options rendered here -->
+        </div>
 
         <div class="typing-option" id="quizTypingBox">
-          <input type="text" class="text-input" id="typingAnswerField" placeholder="Type Romaji sound here..." autocomplete="off">
+          <input type="text" class="text-input" id="typingAnswerField" placeholder="Type Romaji sound..." autocomplete="off">
           <button class="submit-type-btn" id="btnSubmitTyping">Submit Answer</button>
         </div>
       </div>
@@ -355,12 +372,14 @@
     </div>
   </div>
 
+  <!-- VIEW 4: FINAL CELEBRATION VIEW -->
   <div class="view" id="view-result">
     <div class="celebration-box">
       <div class="potion-grand-display">🧪✨</div>
-      <h2>Congratulations!</h2>
-      <div class="celebration-msg">You are now ready for the exam, Mr. Mehdi San!</div>
+      <h2>Magnificent!</h2>
+      <div class="celebration-msg">You conquered the village, Mr. Mehdi San!</div>
       
+      <!-- Pure CSS Algerian Flag -->
       <div class="algerian-flag-css">
         <div class="flag-left"></div>
         <div class="flag-right"></div>
@@ -372,17 +391,18 @@
 
       <div class="score-row">
         <div class="score-badge">
-          <big id="resScoreCorrect">0/0</big>
-          <span>Accuracy</span>
+          <big id="resScoreCorrect">0</big>
+          <span>Final XP</span>
         </div>
         <div class="score-badge">
-          <big id="resXpGained">+0</big>
-          <span>XP Gained</span>
+          <big id="resXpGained">100%</big>
+          <span>Accuracy</span>
         </div>
       </div>
 
       <div class="congrats-chars" id="victoryAvatarRow">
-        </div>
+        <!-- Rendered dynamically -->
+      </div>
 
       <button class="home-btn" id="btnReturnHome">Return to Village</button>
     </div>
@@ -390,6 +410,7 @@
 
 </main>
 
+<!-- Bottom feedback screen bar -->
 <div class="feedback-bar" id="quizFeedbackPopup">
   <div class="feedback-msg">
     <h3 id="popupStatusText">Correct!</h3>
@@ -399,28 +420,26 @@
 </div>
 
 <script>
-// ==========================================
-// CONFIGURABLE CHARACTER ASSETS & STAGES (Modular Variables)
-// ==========================================
+// Modular Configuration Assets
 const ASSETS = {
   characters: {
     asterix: {
       name: "Asterix",
-      desc: "Small but exceptionally smart warrior! Let's conquer Hiragana.",
-      neutral: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=150&q=80", // Alternative High-res placeholders
+      desc: "Smartest warrior of the village! Let's decode the Hiragana sounds.",
+      neutral: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=150&q=80",
       happy: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&q=80",
       sad: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&q=80"
     },
     obelix: {
       name: "Obelix",
-      desc: "Menhir delivery expert, fell into the potion pot! Strong memory.",
+      desc: "Loves wild boars and delivering heavy menhirs. Giant memory pool!",
       neutral: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&q=80",
       happy: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80",
       sad: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80"
     },
     dogmatix: {
-      name: "Dogmatix (Idéfix)",
-      desc: "The loyal ecological puppy. Barking for correct answers!",
+      name: "Dogmatix",
+      desc: "The small ecological puppy. Barks happily on every correct choice!",
       neutral: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&q=80",
       happy: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=150&q=80",
       sad: "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=150&q=80"
@@ -436,118 +455,96 @@ const ASSETS = {
   }
 };
 
-// ==========================================
-// HIGH-FIDELITY DATASET (Translated cleanly to English/Japanese)
-// ==========================================
 const DATA = {
-  seion: { name: "Basic Sounds", icon: "🌸", host: "asterix", words: [
-    {k:"あさ", r:"a sa", m:"morning", e:"🌅", d:1},
-    {k:"あき", r:"a ki", m:"autumn", e:"🍂", d:1},
-    {k:"くつ", r:"ku tsu", m:"shoes", e:"👟", d:1},
-    {k:"かわ", r:"ka wa", m:"river", e:"🏞️", d:1},
-    {k:"さいふ", r:"sa i fu", m:"wallet", e:"👛", d:2},
-    {k:"さかな", r:"sa ka na", m:"fish", e:"🐟", d:2},
-    {k:"とり", r:"to ri", m:"bird", e:"🐦", d:1},
-    {k:"は", r:"ha", m:"tooth", e:"🦷", d:1},
-    {k:"はる", r:"ha ru", m:"spring", e:"🌸", d:1},
-    {k:"みみ", r:"mi mi", m:"ear", e:"👂", d:1},
-    {k:"なつ", r:"na tsu", m:"summer", e:"☀️", d:1},
-    {k:"なまえ", r:"na ma e", m:"name", e:"📛", d:2},
-    {k:"えき", r:"e ki", m:"station", e:"🚉", d:1},
-    {k:"ふね", r:"fu ne", m:"ship", e:"🚢", d:1},
-    {k:"ふゆ", r:"fu yu", m:"winter", e:"❄️", d:1},
-    {k:"ねこ", r:"ne ko", m:"cat", e:"🐱", d:1},
-    {k:"いぬ", r:"i nu", m:"dog", e:"🐶", d:1},
-    {k:"やま", r:"ya ma", m:"mountain", e:"⛰️", d:1},
-    {k:"ゆき", r:"yu ki", m:"snow", e:"☃️", d:1},
-    {k:"よる", r:"yo ru", m:"night", e:"🌙", d:1}
+  seion: { name: "Basic Sounds", icon: "🛖", host: "asterix", words: [
+    {k:"あさ", r:"a sa", m:"morning", e:"🌅"},
+    {k:"あき", r:"a ki", m:"autumn", e:"🍂"},
+    {k:"くつ", r:"ku tsu", m:"shoes", e:"👟"},
+    {k:"かわ", r:"ka wa", m:"river", e:"🏞️"},
+    {k:"さいふ", r:"sa i fu", m:"wallet", e:"👛"},
+    {k:"さかな", r:"sa ka na", m:"fish", e:"🐟"},
+    {k:"とり", r:"to ri", m:"bird", e:"🐦"},
+    {k:"は", r:"ha", m:"tooth", e:"🦷"},
+    {k:"はる", r:"ha ru", m:"spring", e:"🌸"},
+    {k:"みみ", r:"mi mi", m:"ear", e:"👂"},
+    {k:"なつ", r:"na tsu", m:"summer", e:"☀️"},
+    {k:"なまえ", r:"na ma e", m:"name", e:"📛"},
+    {k:"えき", r:"e ki", m:"station", e:"🚉"},
+    {k:"ふね", r:"fu ne", m:"ship", e:"🚢"},
+    {k:"ふゆ", r:"fu yu", m:"winter", e:"❄️"},
+    {k:"ねこ", r:"ne ko", m:"cat", e:"🐱"},
+    {k:"いぬ", r:"i nu", m:"dog", e:"🐶"},
+    {k:"やま", r:"ya ma", m:"mountain", e:"⛰️"},
+    {k:"ゆき", r:"yu ki", m:"snow", e:"☃️"},
+    {k:"よる", r:"yo ru", m:"night", e:"🌙"}
   ]},
-  hane: { name: "The 'n' Sound (ん)", icon: "🏮", host: "obelix", words: [
-    {k:"ぱんだ", r:"pa n da", m:"panda", e:"🐼", d:2},
-    {k:"てんとう", r:"te n to o", m:"ladybug", e:"🐞", d:3},
-    {k:"ほん", r:"ho n", m:"book", e:"📖", d:1},
-    {k:"にほん", r:"ni ho n", m:"Japan", e:"🇯🇵", d:2},
-    {k:"とんかつ", r:"to n ka tsu", m:"tonkatsu (pork cutlet)", e:"🍱", d:3},
-    {k:"かんこく", r:"ka n ko ku", m:"Korea", e:"🇰🇷", d:2},
-    {k:"さんま", r:"sa n ma", m:"sanma fish", e:"🐟", d:2},
-    {k:"かんぱい", r:"ka n pa i", m:"cheers!", e:"🥂", d:3}
+  hane: { name: "The 'n' Sound", icon: "🛖", host: "obelix", words: [
+    {k:"ぱんだ", r:"pa n da", m:"panda", e:"🐼"},
+    {k:"てんとう", r:"te n to o", m:"ladybug", e:"🐞"},
+    {k:"ほん", r:"ho n", m:"book", e:"📖"},
+    {k:"にほん", r:"ni ho n", m:"Japan", e:"🇯🇵"},
+    {k:"とんかつ", r:"to n ka tsu", m:"tonkatsu", e:"🍱"},
+    {k:"かんこく", r:"ka n ko ku", m:"Korea", e:"🇰🇷"},
+    {k:"さんま", r:"sa n ma", m:"sanma fish", e:"🐟"},
+    {k:"かんぱい", r:"ka n pa i", m:"cheers!", e:"🥂"}
   ]},
-  choon: { name: "Long Vowels", icon: "🏯", host: "dogmatix", words: [
-    {k:"いい", r:"i i", m:"good", e:"👍", d:1},
-    {k:"とけい", r:"to ke e", m:"watch/clock", e:"⏰", d:2},
-    {k:"おかあさん", r:"o ka a sa n", m:"mother", e:"👩", d:3},
-    {k:"おとうさん", r:"o to o sa n", m:"father", e:"👨", d:3},
-    {k:"おとうと", r:"o to o to", m:"younger brother", e:"👦", d:3},
-    {k:"おにいさん", r:"o ni i sa n", m:"older brother", e:"🧑", d:3},
-    {k:"おねえさん", r:"o ne e sa n", m:"older sister", e:"👧", d:3},
-    {k:"いもうと", r:"i mo o to", m:"younger sister", e:"👧", d:2},
-    {k:"せんせい", r:"se n se e", m:"teacher", e:"🧑‍🏫", d:2}
+  choon: { name: "Long Vowels", icon: "🛖", host: "dogmatix", words: [
+    {k:"いい", r:"i i", m:"good", e:"👍"},
+    {k:"とけい", r:"to ke e", m:"watch/clock", e:"⏰"},
+    {k:"おかあさん", r:"o ka a sa n", m:"mother", e:"👩"},
+    {k:"おとうさん", r:"o to o sa n", m:"father", e:"👨"},
+    {k:"おとうと", r:"o to o to", m:"younger brother", e:"👦"},
+    {k:"おにいさん", r:"o ni i sa n", m:"older brother", e:"🧑"},
+    {k:"おねえさん", r:"o ne e sa n", m:"older sister", e:"👧"},
+    {k:"いもうと", r:"i mo o to", m:"younger sister", e:"👧"},
+    {k:"せんせい", r:"se n se e", m:"teacher", e:"🧑‍🏫"}
   ]},
-  dakuten: { name: "Voiced Sounds", icon: "⛩️", host: "asterix", words: [
-    {k:"えいが", r:"e e ga", m:"movie", e:"🎬", d:2},
-    {k:"おんがく", r:"o n ga ku", m:"music", e:"🎵", d:2},
-    {k:"でんわ", r:"de n wa", m:"telephone", e:"☎️", d:1},
-    {k:"たまご", r:"ta ma go", m:"egg", e:"🥚", d:1},
-    {k:"みず", r:"mi zu", m:"water", e:"💧", d:1},
-    {k:"がくせい", r:"ga ku se e", m:"student", e:"🎓", d:2},
-    {k:"えいご", r:"e e go", m:"English language", e:"🔤", d:2},
-    {k:"ごはん", r:"go ha n", m:"rice/meal", e:"🍚", d:1},
-    {k:"ごぜん", r:"go ze n", m:"morning (AM)", e:"🌄", d:2},
-    {k:"かばん", r:"ka ba n", m:"bag", e:"👜", d:1},
-    {k:"てんぷら", r:"te n pu ra", m:"tempura", e:"🍤", d:2},
-    {k:"ぎんこう", r:"gi n ko o", m:"bank", e:"🏦", d:2}
+  dakuten: { name: "Voiced Sounds", icon: "🛖", host: "asterix", words: [
+    {k:"えいが", r:"e e ga", m:"movie", e:"🎬"},
+    {k:"おんがく", r:"o n ga ku", m:"music", e:"🎵"},
+    {k:"でんわ", r:"de n wa", m:"telephone", e:"☎️"},
+    {k:"たまご", r:"ta ma go", m:"egg", e:"🥚"},
+    {k:"みず", r:"mi zu", m:"water", e:"💧"},
+    {k:"がくせい", r:"ga ku se e", m:"student", e:"🎓"},
+    {k:"えいご", r:"e e go", m:"English language", e:"🔤"},
+    {k:"ごはん", r:"go ha n", m:"rice/meal", e:"🍚"},
+    {k:"ごぜん", r:"go ze n", m:"morning (AM)", e:"🌄"},
+    {k:"かばん", r:"ka ba n", m:"bag", e:"👜"},
+    {k:"てんぷら", r:"te n pu ra", m:"tempura", e:"🍤"},
+    {k:"ぎんこう", r:"gi n ko o", m:"bank", e:"🏦"}
   ]},
-  sokuon: { name: "Double Consonants", icon: "🎋", host: "obelix", words: [
-    {k:"はっぱ", r:"ha ppa", m:"leaf", e:"🍃", d:2},
-    {k:"きっぷ", r:"ki ppu", m:"ticket", e:"🎫", d:2},
-    {k:"ざっし", r:"za sshi", m:"magazine", e:"📰", d:2},
-    {k:"いっかい", r:"i kka i", m:"1st floor / once", e:"🔢", d:3},
-    {k:"がっこう", r:"ga kko o", m:"school", e:"🏫", d:1}
+  sokuon: { name: "Double Consonants", icon: "🛖", host: "obelix", words: [
+    {k:"はっぱ", r:"ha ppa", m:"leaf", e:"🍃"},
+    {k:"きっぷ", r:"ki ppu", m:"ticket", e:"🎫"},
+    {k:"ざっし", r:"za sshi", m:"magazine", e:"📰"},
+    {k:"いっかい", r:"i kka i", m:"1st floor", e:"🔢"},
+    {k:"がっこう", r:"ga kko o", m:"school", e:"🏫"}
   ]},
-  youon: { name: "Compound Sounds", icon: "🍵", host: "dogmatix", words: [
-    {k:"きょう", r:"kyo o", m:"today", e:"📅", d:1},
-    {k:"ゆうびんきょく", r:"yu u bi n kyo ku", m:"post office", e:"📮", d:3},
-    {k:"きゃく", r:"kya ku", m:"guest/customer", e:"🙋", d:2},
-    {k:"ぎゅうにく", r:"gyu u ni ku", m:"beef", e:"🥩", d:2},
-    {k:"きょうしつ", r:"kyo o shi tsu", m:"classroom", e:"🏫", d:2},
-    {k:"かいしゃいん", r:"ka i sha i n", m:"office worker", e:"💼", d:3},
-    {k:"としょかん", r:"to sho ka n", m:"library", e:"📚", d:2},
-    {k:"どくしょ", r:"do ku sho", m:"reading", e:"📖", d:2},
-    {k:"しゅみ", r:"shu mi", m:"hobby", e:"🎨", d:2},
-    {k:"びじゅつかん", r:"bi ju tsu ka n", m:"art museum", e:"🖼️", d:3},
-    {k:"おちゃ", r:"o cha", m:"green tea", e:"🍵", d:1},
-    {k:"こうちゃ", r:"ko o cha", m:"black tea", e:"☕", d:2},
-    {k:"ちゅうごく", r:"chu u go ku", m:"China", e:"🇨🇳", d:2},
-    {k:"ぎゅうにゅう", r:"gyu u nyu u", m:"milk", e:"🥛", d:2},
-    {k:"こんにゃく", r:"ko n nya ku", m:"konjac", e:"🍢", d:3},
-    {k:"ひゃくえん", r:"hya ku e n", m:"100 yen", e:"💴", d:2},
-    {k:"びょういん", r:"byo o i n", m:"hospital", e:"🏥", d:2},
-    {k:"りょこう", r:"ryo ko o", m:"travel/trip", e:"✈️", d:2},
-    {k:"りょうり", r:"ryo o ri", m:"cooking", e:"🍳", d:2}
+  youon: { name: "Compound Sounds", icon: "🛖", host: "dogmatix", words: [
+    {k:"きょう", r:"kyo o", m:"today", e:"📅"},
+    {k:"ゆうびんきょく", r:"yu u bi n kyo ku", m:"post office", e:"📮"},
+    {k:"きゃく", r:"kya ku", m:"guest/customer", e:"🙋"},
+    {k:"ぎゅうにく", r:"gyu u ni ku", m:"beef", e:"🥩"},
+    {k:"きょうしつ", r:"kyo o shi tsu", m:"classroom", e:"🏫"},
+    {k:"かいしゃいん", r:"ka i sha i n", m:"office worker", e:"💼"},
+    {k:"としょかん", r:"to sho ka n", m:"library", e:"📚"},
+    {k:"どくしょ", r:"do ku sho", m:"reading", e:"📖"},
+    {k:"しゅみ", r:"shu mi", m:"hobby", e:"🎨"},
+    {k:"びじゅつかん", r:"bi ju tsu ka n", m:"art museum", e:"🖼️"}
   ]}
 };
 
 const STAGE_ORDER = ["seion", "hane", "choon", "dakuten", "sokuon", "youon"];
 
-// ==========================================
-// GAME STATE ENGINE
-// ==========================================
 let state = {
   xp: 0,
   hearts: 7,
   unlockedStages: ["seion"],
   completedStages: {},
   currentStage: null,
-  quiz: {
-    pool: [],
-    questions: [],
-    index: 0,
-    correctCount: 0,
-    hostKey: "asterix"
-  }
+  quiz: { pool: [], questions: [], index: 0, correctCount: 0, hostKey: "asterix" }
 };
 
-// --- Speech Engine ---
 function playVoiceText(text) {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
@@ -557,7 +554,6 @@ function playVoiceText(text) {
   window.speechSynthesis.speak(utterance);
 }
 
-// --- Synthesized Sound Generator ---
 function playToneEffect(type) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -567,37 +563,32 @@ function playToneEffect(type) {
     gain.connect(ctx.destination);
 
     if (type === 'correct') {
-      // Cheerful multi-tone arpeggio (simulating 3 seconds elegant wave)
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15); // E5
-      osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.3); // G5
-      osc.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.45); // C6
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
-      osc.start(); osc.stop(ctx.currentTime + 1.5);
+      osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.12);
+      osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.24);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+      osc.start(); osc.stop(ctx.currentTime + 0.8);
     } else if (type === 'wrong') {
-      // Harsh low Buzz sound
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(120, ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 0.4);
-      gain.gain.setValueAtTime(0.4, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
-      osc.start(); osc.stop(ctx.currentTime + 0.5);
+      osc.frequency.setValueAtTime(130, ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(90, ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+      osc.start(); osc.stop(ctx.currentTime + 0.4);
     } else if (type === 'victory') {
-      // Grand celebratory majestic tone
       osc.type = 'sine';
       osc.frequency.setValueAtTime(587.33, ctx.currentTime);
       osc.frequency.setValueAtTime(880.00, ctx.currentTime + 0.2);
       osc.frequency.setValueAtTime(1174.66, ctx.currentTime + 0.4);
-      gain.gain.setValueAtTime(0.4, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2.5);
-      osc.start(); osc.stop(ctx.currentTime + 2.5);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2.0);
+      osc.start(); osc.stop(ctx.currentTime + 2.0);
     }
-  } catch(e) { console.log("Web Audio blocked or un-supported.", e); }
+  } catch(e) {}
 }
 
-// --- Navigation View Router ---
 function navigateToView(viewId) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + viewId).classList.add('active');
@@ -610,11 +601,14 @@ function updateTopStatusBar() {
 }
 
 // ==========================================
-// VIEW 1: PATH BUILDER
+// RENDER: THE WINDING VILLAGE ROAD PATH (S-Curve)
 // ==========================================
-function renderVillagePathTrack() {
-  const track = document.getElementById('dynamicPathTrack');
-  track.innerHTML = '';
+function renderWindingVillageRoad() {
+  const roadTrack = document.getElementById('villageRoadWindingTrack');
+  roadTrack.innerHTML = '';
+
+  // Staggered pattern array to simulate real left/right winding movement inside the village grid
+  const positionalPatterns = ["pos-left", "pos-center", "pos-right", "pos-center"];
 
   STAGE_ORDER.forEach((key, idx) => {
     const stage = DATA[key];
@@ -622,52 +616,58 @@ function renderVillagePathTrack() {
     const isDone = state.completedStages[key];
     const hostInfo = ASSETS.characters[stage.host];
 
-    const nodeWrap = document.createElement('div');
-    nodeWrap.className = "node-container";
+    // Determine curve layout position
+    const rowClass = positionalPatterns[idx % positionalPatterns.length];
+
+    const rowEl = document.createElement('div');
+    rowEl.className = `road-row ${rowClass}`;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = "hut-node-wrapper";
 
     const btn = document.createElement('button');
-    btn.className = `node-btn ${isUnlocked ? '' : 'locked'}`;
+    btn.className = `hut-btn ${isUnlocked ? '' : 'locked'}`;
     btn.innerHTML = isUnlocked ? stage.icon : "🔒";
     
     if (isDone) {
-      btn.innerHTML += `<span class="stars">⭐⭐⭐</span>`;
+      btn.innerHTML += `<span class="stars-badge">⭐⭐⭐</span>`;
     }
 
     btn.onclick = () => {
       if (isUnlocked) enterHouseView(key);
     };
 
-    const title = document.createElement('div');
-    title.className = "node-title";
-    title.textContent = stage.name;
+    const label = document.createElement('div');
+    label.className = "hut-label";
+    label.innerHTML = `${stage.name}<br><span class="hut-host-tag">${hostInfo.name}'s Hut</span>`;
 
-    const sub = document.createElement('div');
-    sub.className = "node-subtitle";
-    sub.textContent = `${hostInfo.name}'s Hut`;
-
-    nodeWrap.appendChild(btn);
-    nodeWrap.appendChild(title);
-    nodeWrap.appendChild(sub);
-    track.appendChild(nodeWrap);
+    wrapper.appendChild(btn);
+    wrapper.appendChild(label);
+    rowEl.appendChild(wrapper);
+    roadTrack.appendChild(rowEl);
   });
 
-  // End of the Path node: The Magic Potion Pot
-  const potion = document.createElement('div');
-  potion.className = "potion-end";
-  potion.innerHTML = "🧪";
-  potion.title = "The Magic Potion of Completion";
-  potion.onclick = () => {
+  // Final Cauldron Pot Row at the end of the road
+  const finalRow = document.createElement('div');
+  finalRow.className = "road-row pos-center";
+  
+  const cauldron = document.createElement('div');
+  cauldron.className = "magic-cauldron-pot";
+  cauldron.innerHTML = "🧪";
+  cauldron.onclick = () => {
     if (Object.keys(state.completedStages).length === STAGE_ORDER.length) {
       triggerFinalCelebration();
     } else {
-      alert("Complete all huts along the path to unlock the Magic Potion!");
+      alert("Finish all available Huts on the village path to taste the Magic Potion!");
     }
   };
-  track.appendChild(potion);
+
+  finalRow.appendChild(cauldron);
+  roadTrack.appendChild(finalRow);
 }
 
 // ==========================================
-// VIEW 2: HOUSE/STAGE INTERACTION
+// HOUSE / LESSON OVERVIEW
 // ==========================================
 function enterHouseView(stageKey) {
   state.currentStage = stageKey;
@@ -677,12 +677,11 @@ function enterHouseView(stageKey) {
   const container = document.getElementById('villageHouseBox');
   container.style.setProperty('--house-bg', ASSETS.backgrounds[stageKey]);
 
-  document.getElementById('houseTitleDisplay').textContent = `${stage.name} Hub`;
+  document.getElementById('houseTitleDisplay').textContent = `${stage.name} Hut Hub`;
   document.getElementById('houseHostAvatar').src = host.neutral;
   document.getElementById('houseHostName').textContent = host.name;
   document.getElementById('houseHostDesc').textContent = host.desc;
 
-  // Build the grid
   const grid = document.getElementById('lessonWordGrid');
   grid.innerHTML = '';
 
@@ -705,7 +704,6 @@ function enterHouseView(stageKey) {
       playVoiceText(w.k);
     };
     card.onclick = () => playVoiceText(w.k);
-
     grid.appendChild(card);
   });
 
@@ -713,12 +711,12 @@ function enterHouseView(stageKey) {
 }
 
 document.getElementById('btnLeaveHouse').onclick = () => {
-  renderVillagePathTrack();
+  renderWindingVillageRoad();
   navigateToView('path');
 };
 
 // ==========================================
-// VIEW 3: QUIZ CORE ENGINE
+// QUIZ FLOW RUNTIME ENGINE
 // ==========================================
 document.getElementById('btnStartHouseQuiz').onclick = () => {
   setupQuizQueue(DATA[state.currentStage].words, DATA[state.currentStage].host);
@@ -728,20 +726,18 @@ function setupQuizQueue(wordsList, hostKey) {
   state.hearts = 7;
   updateTopStatusBar();
   
-  // Create modular mixed questions
   const questions = wordsList.map((w, idx) => {
-    const isTyping = idx % 2 === 1; // Alternate question variants: Multiple Choice vs Typing Input
+    const isTyping = idx % 2 === 1;
     let options = [];
     let correct = w.m;
 
     if (!isTyping) {
-      // Multiple Choice variant
       let pool = [];
       STAGE_ORDER.forEach(k => DATA[k].words.forEach(ww => { if(ww.m !== w.m) pool.push(ww.m); }));
       pool = [...new Set(pool)].sort(() => 0.5 - Math.random()).slice(0, 3);
       options = [w.m, ...pool].sort(() => 0.5 - Math.random());
     } else {
-      correct = w.r; // For typing, compare against Romaji spelling
+      correct = w.r;
     }
 
     return { word: w, isTyping, correct, options };
@@ -767,8 +763,8 @@ function updateQuizCharacterAvatar(mood) {
   document.getElementById('quizAvatarName').textContent = host.name;
   
   let statusStr = "Watching closely...";
-  if(mood === 'happy') statusStr = "Ecstatic! Superb answer!";
-  if(mood === 'sad') statusStr = "Disappointed! Try harder!";
+  if(mood === 'happy') statusStr = "Incredible output! Correct!";
+  if(mood === 'sad') statusStr = "Ouch! Watch out next time!";
   document.getElementById('quizAvatarStatus').textContent = statusStr;
 }
 
@@ -776,7 +772,6 @@ function renderNextQuizItem() {
   const q = state.quiz.questions[state.quiz.index];
   const total = state.quiz.questions.length;
   
-  // Progress calculations
   document.getElementById('quizProgressFillBar').style.width = `${(state.quiz.index / total) * 100}%`;
 
   const promptHeading = document.getElementById('quizPromptHeading');
@@ -784,7 +779,7 @@ function renderNextQuizItem() {
   const subQ = document.getElementById('quizQuestionSub');
   
   mainQ.textContent = q.word.k;
-  subQ.textContent = q.isTyping ? "Write down the correct Romaji spelling:" : "Select the accurate meaning:";
+  subQ.textContent = q.isTyping ? "Provide the correct Romaji transcription:" : "Match the correct meaning:";
   promptHeading.textContent = `Question ${state.quiz.index + 1} of ${total}`;
 
   document.getElementById('quizAudioSpeak').onclick = () => playVoiceText(q.word.k);
@@ -823,9 +818,7 @@ function evaluateSubmittedAnswer(userAns, element = null) {
   const statusTxt = document.getElementById('popupStatusText');
   const subTxt = document.getElementById('popupSubText');
 
-  // Disable options or actions immediately
   document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
-
   const isCorrect = userAns === q.correct;
 
   if (isCorrect) {
@@ -837,8 +830,8 @@ function evaluateSubmittedAnswer(userAns, element = null) {
     playToneEffect('correct');
 
     popup.className = "feedback-bar correct";
-    statusTxt.textContent = "CORRECT! 🎉";
-    subTxt.textContent = `"${q.word.k}" perfectly maps to "${q.word.m}" (${q.word.r}).`;
+    statusTxt.textContent = "CORRECT 🎉";
+    subTxt.textContent = `"${q.word.k}" translates to "${q.word.m}".`;
   } else {
     if(element) element.classList.add('wrong');
     state.hearts = Math.max(state.hearts - 1, 0);
@@ -848,10 +841,10 @@ function evaluateSubmittedAnswer(userAns, element = null) {
 
     popup.className = "feedback-bar wrong";
     statusTxt.textContent = "INCORRECT ❌";
-    subTxt.textContent = `Correct answer was: "${q.correct}"`;
+    subTxt.textContent = `Expected answer: "${q.correct}"`;
 
     if (state.hearts <= 0) {
-      alert("No hearts left! Returning to hut to rest.");
+      alert("Out of health hearts! Returning to safe village ground.");
       closePopupAndContinue(true);
       return;
     }
@@ -895,31 +888,26 @@ function concludeActiveStage() {
     }
   }
 
-  // Check if everything is completely finished
   if (Object.keys(state.completedStages).length === STAGE_ORDER.length) {
     triggerFinalCelebration();
     return;
   }
 
-  // Normal result view fallback if not absolute village completion
-  alert(`Stage Complete! Score: ${correct}/${total}. Unlocked next hut if passed!`);
-  renderVillagePathTrack();
+  alert(`Hut Complete! Accuracy: ${correct}/${total}. Winding road path updated!`);
+  renderWindingVillageRoad();
   navigateToView('path');
 }
 
 // ==========================================
-// VIEW 4: GRAND FINALE CELEBRATION
+// FINALE CELEBRATION RESULT VIEW
 // ==========================================
 function triggerFinalCelebration() {
   playToneEffect('victory');
-  
   document.getElementById('resScoreCorrect').textContent = `${state.xp} Pts`;
-  document.getElementById('resXpGained').textContent = `100%`;
 
   const row = document.getElementById('victoryAvatarRow');
   row.innerHTML = '';
   
-  // Render avatars gathering together
   Object.keys(ASSETS.characters).forEach(k => {
     const img = document.createElement('img');
     img.className = "congrats-avatar";
@@ -932,13 +920,13 @@ function triggerFinalCelebration() {
 }
 
 document.getElementById('btnReturnHome').onclick = () => {
-  renderVillagePathTrack();
+  renderWindingVillageRoad();
   navigateToView('path');
 };
 
-// Initializer Hook
+// Start execution
 (function initApp() {
-  renderVillagePathTrack();
+  renderWindingVillageRoad();
   updateTopStatusBar();
 })();
 </script>
