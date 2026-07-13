@@ -1,934 +1,103 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mehdi San | Village Hiragana Quest</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg-dark: #0b0712;
-    --card-dark: #160f24;
-    --village-grass: #112616;
-    --gravel-path: #3a2b54;
-    --purple-glow: #bd7eff;
-    --text-light: #f1e8fcd8;
-    --text-bright: #ffffff;
-    --green-success: #00e676;
-    --red-error: #ff1744;
-    --gold: #ffea00;
-    --font-en: 'Baloo 2', sans-serif;
-    --font-ja: 'Zen Maru Gothic', sans-serif;
-  }
+    <meta charset="UTF-8">
+    <title>خريطة قرية أستريكس وأوبيليكس</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* حاوية الخريطة لتناسب شاشات الحاسوب 16:9 */
+        .map-container {
+            position: relative;
+            width: 100vw;
+            height: 56.25vw; /* نسبة 16:9 الافتراضية للكمبيوتر */
+            max-height: 100vh;
+            max-width: 177.78vh; /* لمنع التمدد المشوه */
+            margin: auto;
+            background-image: url('watermarked_img_16792292335903456063.png'); /* اسم صورتك هنا */
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+        }
 
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body, html { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-light); font-family: var(--font-en); min-height: 100vh; overflow-x: hidden; }
-  button, input { font-family: inherit; }
+        /* التصميم الموحد للافتات الأسماء والأزرار فوق الأكواخ */
+        .stage-node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-  /* ---- Topbar Elements Aligned Side-by-Side ---- */
-  .topbar {
-    position: sticky; top: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 20px; background: rgba(22, 15, 36, 0.95);
-    border-bottom: 3px solid #25183a; backdrop-filter: blur(8px);
-  }
-  .logo { font-family: var(--font-ja); font-weight: 900; font-size: 20px; color: var(--gold); text-shadow: 0 0 8px rgba(255,234,0,0.3); }
-  
-  /* Horizontal Stats Row Right Next to Each Other */
-  .stats-cluster { display: flex; align-items: center; gap: 8px; }
-  .stat-pill {
-    display: flex; align-items: center; gap: 6px;
-    background: #201435; border: 2px solid #3c2663; border-radius: 20px;
-    padding: 6px 14px; font-weight: 800; font-size: 14px;
-  }
-  .stat-pill.hearts { color: var(--red-error); border-color: rgba(255,23,68,0.4); }
-  .stat-pill.xp { color: var(--gold); border-color: rgba(255,234,0,0.3); }
+        /* لافتة الاسم ثلاثية الأبعاد برمجياً */
+        .name-tag {
+            background: linear-gradient(135deg, #ffffff, #f0f0f0);
+            color: #333;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 0 #ccc;
+            border: 1px solid #999;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
 
-  main { max-width: 1000px; margin: 0 auto; padding: 15px; }
+        /* نقطة الضغط أو الزر التفاعلي الدائري */
+        .stage-button {
+            width: 24px;
+            height: 24px;
+            background-color: #ffcc00;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            margin-top: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite;
+        }
 
-  /* ---- View Handler ---- */
-  .view { display: none; }
-  .view.active { display: block; }
+        /* تأثير نبضي لجذب لاعب للمرحلة المفتوحة */
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(255, 204, 0, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
+        }
 
-  /* ---- MAP VIEW: Gaulish Winding Village Road ---- */
-  .path-header { text-align: center; margin: 15px 0 25px; }
-  .path-header h1 { font-family: var(--font-ja); font-weight: 900; color: var(--text-bright); margin: 0; font-size: 26px; }
-  .path-header p { color: #a490bd; margin: 4px 0 0; font-size: 14px; }
-
-  /* The Map Container simulating a real layout */
-  .village-map-container {
-    width: 100%; background: linear-gradient(135deg, var(--bg-dark) 0%, var(--village-grass) 100%);
-    border-radius: 28px; border: 3px solid #213d28; padding: 30px 20px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.6); position: relative;
-    overflow: hidden;
-  }
-  
-  /* Decorative elements inside the village map */
-  .village-bg-deco { position: absolute; font-size: 24px; opacity: 0.15; pointer-events: none; }
-
-  /* S-Curve Winding Road Flow Layout */
-  .village-winding-road {
-    display: flex; flex-direction: column; gap: 20px;
-    position: relative; max-width: 500px; margin: 0 auto;
-  }
-
-  /* Road Rows that shift left, center, right to simulate the curved path */
-  .road-row { display: flex; width: 100%; position: relative; padding: 10px 0; }
-  .road-row.pos-left { justify-content: flex-start; padding-left: 20px; }
-  .road-row.pos-center { justify-content: center; }
-  .road-row.pos-right { justify-content: flex-end; padding-right: 20px; }
-
-  /* Visual connecting pathway graphic elements */
-  .road-row::before {
-    content: ''; position: absolute; top: 50%; left: 10%; right: 10%;
-    height: 12px; background: var(--gravel-path); border-radius: 6px;
-    z-index: 1; opacity: 0.4; pointer-events: none;
-  }
-
-  /* Hut Nodes */
-  .hut-node-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 5; }
-  
-  .hut-btn {
-    width: 86px; height: 86px; border-radius: 24px; border: 3px solid #fff;
-    font-size: 38px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; background: #4a287c; 
-    box-shadow: 0 6px 0 #2b144d, 0 10px 15px rgba(0,0,0,0.5);
-    transition: transform 0.1s, background-color 0.3s;
-  }
-  .hut-btn:active:not(.locked) { transform: translateY(4px); box-shadow: 0 2px 0 #2b144d; }
-  .hut-btn.locked { background: #3c3547; border-color: #584e63; box-shadow: 0 6px 0 #221d29; cursor: not-allowed; opacity: 0.5; }
-  
-  .hut-btn .stars-badge {
-    position: absolute; bottom: -8px; background: #fff; color: #ff9800;
-    border-radius: 10px; font-size: 11px; padding: 1px 6px; font-weight: 800; border: 2px solid #2b144d;
-  }
-  .hut-label { font-weight: 800; margin-top: 10px; font-size: 14px; color: var(--text-bright); text-shadow: 0 2px 4px rgba(0,0,0,0.8); text-align: center; }
-  .hut-host-tag { font-size: 11px; color: #b1a0c7; font-weight: 600; }
-  
-  /* Final Magic Potion Structure at the end of the road */
-  .magic-cauldron-pot {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width: 100px; height: 100px; font-size: 50px; cursor: pointer;
-    filter: drop-shadow(0 0 15px var(--gold)); animation: cauldronWobble 2.5s ease-in-out infinite;
-  }
-  @keyframes cauldronWobble { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.08) rotate(3deg); } }
-
-  /* ---- HOUSE HUT INTERIOR VIEW ---- */
-  .village-container {
-    background: linear-gradient(180deg, rgba(22, 15, 36, 0.7) 0%, rgba(11, 7, 18, 0.98) 100%), var(--house-bg, #2a1a3a);
-    background-size: cover; background-position: center; border-radius: 24px; padding: 20px;
-    border: 2px solid #3d275c; margin-top: 5px;
-  }
-  .back-nav { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
-  .back-btn {
-    background: #392456; border: none; color: #fff; font-size: 16px; font-weight: 700;
-    padding: 8px 16px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 0 #201433;
-  }
-  .back-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #201433; }
-  .house-title { font-family: var(--font-ja); font-size: 22px; font-weight: 900; color: var(--gold); }
-
-  .mode-switch { display: flex; gap: 10px; margin-bottom: 20px; }
-  .mode-tab {
-    flex: 1; background: #1c122b; border: 2px solid #412b5e; color: #a996c2; font-weight: 700;
-    padding: 10px; border-radius: 16px; cursor: pointer; font-size: 14px;
-  }
-  .mode-tab.active { background: #602fa6; border-color: var(--purple-glow); color: #fff; }
-
-  .word-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; }
-  .word-card {
-    background: var(--card-dark); border: 2px solid #36244f; border-radius: 16px;
-    padding: 14px; display: flex; flex-direction: column; align-items: center; position: relative;
-    cursor: pointer; box-shadow: 0 5px 0 #0d0817; transition: transform 0.2s;
-  }
-  .word-card:active { transform: translateY(3px); box-shadow: 0 2px 0 #0d0817; }
-  .card-top { display: flex; justify-content: space-between; width: 100%; margin-bottom: 6px; }
-  .audio-icon, .fav-icon { background: none; border: none; font-size: 15px; cursor: pointer; opacity: 0.5; }
-  .fav-icon.active { opacity: 1; color: var(--gold); }
-  .audio-icon:hover { opacity: 1; }
-  .card-emoji { font-size: 32px; margin: 2px 0; }
-  .card-kana { font-family: var(--font-ja); font-size: 24px; font-weight: 900; color: #fff; }
-  .card-romaji { font-size: 13px; color: #b09ec7; font-weight: 700; }
-  .card-meaning { font-size: 14px; color: var(--green-success); font-weight: 700; margin-top: 4px; text-align: center; }
-
-  .char-host-box {
-    display: flex; align-items: center; gap: 16px; background: rgba(30, 19, 43, 0.85);
-    border-radius: 16px; padding: 14px; margin-bottom: 16px; border: 1px dashed #6b4c94;
-  }
-  .char-host-img { width: 64px; height: 64px; border-radius: 50%; background: #452c63; object-fit: cover; border: 2px solid var(--gold); }
-  .char-host-text h4 { margin: 0; font-size: 15px; color: #fff; }
-  .char-host-text p { margin: 2px 0 0; font-size: 12px; color: #bcaec7; }
-
-  /* ---- QUIZ RUNTIME MODULE ---- */
-  .quiz-layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
-  @media(min-width: 768px) { .quiz-layout { grid-template-columns: 260px 1fr; } }
-  
-  .character-reaction-panel {
-    background: var(--card-dark); border: 2px solid #36244f; border-radius: 20px;
-    padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.3); text-align: center;
-  }
-  .avatar-display {
-    width: 130px; height: 130px; border-radius: 50%; background: #231736;
-    border: 4px solid #5d2fa3; object-fit: cover; margin-bottom: 12px;
-    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  .avatar-name { font-weight: 800; font-size: 18px; color: var(--gold); margin: 0; }
-  .avatar-status { font-size: 13px; color: #9f8eb3; margin: 2px 0 0; font-weight: 600; }
-
-  .quiz-engine { background: var(--card-dark); border: 2px solid #36244f; border-radius: 20px; padding: 20px; }
-  .quiz-progress-bar { height: 10px; background: #1c1329; border-radius: 5px; overflow: hidden; margin-bottom: 16px; }
-  .quiz-progress-fill { height: 100%; background: #6a32bf; width: 0%; transition: width 0.3s; }
-  
-  .quiz-question-card {
-    background: #201630; border: 2px solid #482f6b; border-radius: 16px;
-    padding: 25px 15px; text-align: center; margin-bottom: 20px; position: relative;
-  }
-  .q-prompt { font-size: 13px; color: #b69fd1; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-  .q-main { font-family: var(--font-ja); font-size: 44px; font-weight: 900; color: #fff; margin: 10px 0; }
-  .q-sub { font-size: 15px; color: #88749e; font-weight: 600; }
-  .q-speak-btn { background: #5c2ea1; border: none; border-radius: 50%; width: 42px; height: 42px; font-size: 16px; color:#fff; cursor:pointer; margin-top:8px; box-shadow: 0 4px 0 #411d75;}
-  
-  .mc-options { display: grid; grid-template-columns: 1fr; gap: 10px; }
-  .option-btn {
-    background: #241838; border: 2px solid #432d63; border-radius: 12px;
-    padding: 14px; font-size: 15px; font-weight: 700; color: #fff; cursor: pointer;
-    text-align: center; box-shadow: 0 4px 0 #140d21; transition: all 0.1s;
-  }
-  .option-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #140d21; }
-  .option-btn.correct { background: rgba(0,230,118,0.2) !important; border-color: var(--green-success) !important; color: var(--green-success); font-weight: 800; }
-  .option-btn.wrong { background: rgba(255,23,68,0.2) !important; border-color: var(--red-error) !important; color: var(--red-error); }
-  
-  .typing-option { display: none; flex-direction: column; gap: 10px; }
-  .text-input {
-    background: #1b1029; border: 3px solid #452c66; border-radius: 12px;
-    padding: 14px; font-size: 17px; color: #fff; text-align: center; font-weight: 700;
-  }
-  .text-input:focus { outline: none; border-color: var(--purple-glow); }
-  .submit-type-btn {
-    background: var(--green-success); color: #000; font-weight: 800; border: none;
-    padding: 14px; border-radius: 12px; font-size: 15px; cursor: pointer; box-shadow: 0 4px 0 #00994f;
-  }
-
-  /* Fixed Feedback Prompt */
-  .feedback-bar {
-    position: fixed; bottom: 0; left: 0; right: 0; padding: 16px;
-    display: none; align-items: center; justify-content: space-between;
-    border-top: 4px solid #fff; z-index: 200; backdrop-filter: blur(10px);
-  }
-  .feedback-bar.correct { display: flex; background: rgba(9, 41, 20, 0.96); border-color: var(--green-success); }
-  .feedback-bar.wrong { display: flex; background: rgba(48, 10, 19, 0.96); border-color: var(--red-error); }
-  .feedback-msg h3 { margin: 0; font-size: 18px; }
-  .feedback-msg p { margin: 2px 0 0; font-size: 13px; color: #ddd3e8; }
-  .action-btn {
-    background: #fff; color: #000; font-weight: 800; border: none;
-    padding: 10px 24px; border-radius: 12px; font-size: 15px; cursor: pointer;
-  }
-
-  /* ---- CELEBRATION RESULT VIEW ---- */
-  .celebration-box {
-    background: radial-gradient(circle at center, #24113b 0%, var(--card-dark) 100%);
-    border: 3px solid var(--gold); border-radius: 28px; padding: 35px 15px;
-    text-align: center; box-shadow: 0 0 30px rgba(255,234,0,0.15);
-    max-width: 550px; margin: 15px auto;
-  }
-  .potion-grand-display { font-size: 70px; margin-bottom: 16px; animation: grandFloat 2.5s ease-in-out infinite; }
-  @keyframes grandFloat { 0%,100%{transform: translateY(0);} 50%{transform: translateY(-12px);} }
-  
-  /* Hardcoded Pure CSS Algerian Flag */
-  .algerian-flag-css {
-    width: 150px; height: 95px; margin: 0 auto 20px;
-    border: 3px solid #fff; box-shadow: 0 6px 14px rgba(0,0,0,0.4);
-    position: relative; display: flex; overflow: hidden; border-radius: 6px;
-  }
-  .flag-left { width: 50%; background: #006633; }
-  .flag-right { width: 50%; background: #ffffff; }
-  .flag-emblem {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-  }
-  .flag-crescent {
-    width: 30px; height: 30px; background: transparent; border-radius: 50%;
-    box-shadow: -9px 0px 0 0 #d21d38; position: absolute; left: 8px;
-  }
-  .flag-star {
-    position: absolute; left: 17px; top: 10px;
-    font-size: 18px; color: #d21d38; line-height: 1;
-  }
-
-  .celebration-box h2 { font-family: var(--font-ja); font-size: 28px; color: #fff; margin: 0 0 8px; }
-  .celebration-msg { font-size: 18px; color: var(--gold); font-weight: 800; margin: 8px 0 20px; }
-  
-  .score-row { display: flex; justify-content: center; gap: 16px; margin-bottom: 25px; }
-  .score-badge { background: #1f1330; border: 2px solid #432e61; padding: 10px 16px; border-radius: 12px; min-width: 105px; }
-  .score-badge big { display: block; font-size: 22px; font-weight: 800; color: #fff; }
-  .score-badge span { font-size: 11px; color: #a694ba; font-weight: 600; }
-
-  .congrats-chars { display: flex; justify-content: center; gap: 12px; margin-bottom: 20px; }
-  .congrats-avatar { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #fff; background: #3c205c; }
-
-  .home-btn {
-    background: #602fa6; color: #fff; border: none; font-weight: 800;
-    padding: 14px 32px; border-radius: 14px; font-size: 15px; cursor: pointer; box-shadow: 0 4px 0 #461f7d;
-  }
-  .home-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #461f7d; }
-</style>
+        /* حالة المراحل المغلقة */
+        .stage-node.locked .name-tag { background: #666; color: #aaa; border-color: #444; }
+        .stage-node.locked .stage-button { background-color: #444; animation: none; }
+    </style>
 </head>
 <body>
 
-<!-- Aligned side-by-side Top Header -->
-<div class="topbar">
-  <div class="logo">⛩️ Mehdi San</div>
-  <div class="stats-cluster">
-    <div class="stat-pill hearts">❤️ <span id="hearts-counter">7</span></div>
-    <div class="stat-pill xp">⭐ <span id="xp-counter">0</span> XP</div>
-  </div>
-</div>
-
-<main>
-
-  <!-- VIEW 1: WINDING VILLAGE ROAD MAP -->
-  <div class="view active" id="view-path">
-    <div class="path-header">
-      <h1>Gaulish Village Quest</h1>
-      <p>Walk the winding village road, unlock huts, and blend the Magic Potion!</p>
+<div class="map-container">
+    <!-- مرحلة البداية: الكلب إيديفيكس -->
+    <div class="stage-node" style="top: 10%; left: 10%;" onclick="startStage(0)">
+        <div class="name-tag">🐾 البداية (Idefix)</div>
+        <div class="stage-button"></div>
     </div>
-    
-    <div class="village-map-container">
-      <!-- Ambient decorative icons -->
-      <span class="village-bg-deco" style="top:10%; left:15%;">🌳</span>
-      <span class="village-bg-deco" style="top:40%; right:12%;">🌳</span>
-      <span class="village-bg-deco" style="bottom:20%; left:8%;">🏕️</span>
-      <span class="village-bg-deco" style="bottom:50%; left:45%;">🌲</span>
 
-      <!-- Staggered S-Shape Village Pathway -->
-      <div class="village-winding-road" id="villageRoadWindingTrack">
-        <!-- Generated Dynamically via JS with staggered classes -->
-      </div>
+    <!-- المرحلة 1: أستريكس -->
+    <div class="stage-node" style="top: 32%; left: 16%;" onclick="startStage(1)">
+        <div class="name-tag">المرحلة 1: أستريكس</div>
+        <div class="stage-button"></div>
     </div>
-  </div>
 
-  <!-- VIEW 2: HUT DETAILS VIEW -->
-  <div class="view" id="view-lesson">
-    <div class="village-container" id="villageHouseBox">
-      <div class="back-nav">
-        <button class="back-btn" id="btnLeaveHouse">← Leave Hut</button>
-        <div class="house-title" id="houseTitleDisplay">Asterix's Hut</div>
-      </div>
-
-      <div class="char-host-box">
-        <img src="" class="char-host-img" id="houseHostAvatar" alt="Host">
-        <div class="char-host-text">
-          <h4 id="houseHostName">Asterix</h4>
-          <p id="houseHostDesc">Welcome! Review these vocabulary cards inside my hut before hitting the quiz.</p>
-        </div>
-      </div>
-
-      <div class="mode-switch">
-        <button class="mode-tab active" id="tabGridMode">🀄 Vocabulary Grid</button>
-        <button class="mode-tab" id="btnStartHouseQuiz">📝 Challenge Quiz</button>
-      </div>
-
-      <div class="word-grid" id="lessonWordGrid">
-        <!-- Cards generated dynamically -->
-      </div>
+    <!-- المرحلة 2: أوبيليكس -->
+    <div class="stage-node locked" style="top: 25%; left: 40%;" onclick="startStage(2)">
+        <div class="name-tag">المرحلة 2: أوبيليكس</div>
+        <div class="stage-button"></div>
     </div>
-  </div>
 
-  <!-- VIEW 3: ACTIVE QUIZ VIEW -->
-  <div class="view" id="view-quiz">
-    <div class="quiz-layout">
-      
-      <!-- Character Reaction Box -->
-      <div class="character-reaction-panel">
-        <img src="" class="avatar-display" id="quizReactionAvatar" alt="Profile">
-        <h3 class="avatar-name" id="quizAvatarName">Obelix</h3>
-        <span class="avatar-status" id="quizAvatarStatus">Watching closely...</span>
-      </div>
-
-      <!-- Engine Card -->
-      <div class="quiz-engine">
-        <div class="quiz-progress-bar">
-          <div class="quiz-progress-fill" id="quizProgressFillBar"></div>
-        </div>
-
-        <div class="quiz-question-card">
-          <span class="q-prompt" id="quizPromptHeading">Question</span>
-          <div class="q-main" id="quizQuestionMain">あさ</div>
-          <div class="q-sub" id="quizQuestionSub">Sound mapping</div>
-          <button class="q-speak-btn" id="quizAudioSpeak">🔊</button>
-        </div>
-
-        <div class="mc-options" id="quizMultipleChoiceBox">
-          <!-- Options rendered here -->
-        </div>
-
-        <div class="typing-option" id="quizTypingBox">
-          <input type="text" class="text-input" id="typingAnswerField" placeholder="Type Romaji sound..." autocomplete="off">
-          <button class="submit-type-btn" id="btnSubmitTyping">Submit Answer</button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- VIEW 4: FINAL CELEBRATION VIEW -->
-  <div class="view" id="view-result">
-    <div class="celebration-box">
-      <div class="potion-grand-display">🧪✨</div>
-      <h2>Magnificent!</h2>
-      <div class="celebration-msg">You conquered the village, Mr. Mehdi San!</div>
-      
-      <!-- Pure CSS Algerian Flag -->
-      <div class="algerian-flag-css">
-        <div class="flag-left"></div>
-        <div class="flag-right"></div>
-        <div class="flag-emblem">
-          <div class="flag-crescent"></div>
-          <div class="flag-star">★</div>
-        </div>
-      </div>
-
-      <div class="score-row">
-        <div class="score-badge">
-          <big id="resScoreCorrect">0</big>
-          <span>Final XP</span>
-        </div>
-        <div class="score-badge">
-          <big id="resXpGained">100%</big>
-          <span>Accuracy</span>
-        </div>
-      </div>
-
-      <div class="congrats-chars" id="victoryAvatarRow">
-        <!-- Rendered dynamically -->
-      </div>
-
-      <button class="home-btn" id="btnReturnHome">Return to Village</button>
-    </div>
-  </div>
-
-</main>
-
-<!-- Bottom feedback screen bar -->
-<div class="feedback-bar" id="quizFeedbackPopup">
-  <div class="feedback-msg">
-    <h3 id="popupStatusText">Correct!</h3>
-    <p id="popupSubText">Excellent progress.</p>
-  </div>
-  <button class="action-btn" id="btnPopupContinue">Continue</button>
+    <!-- يمكنك تكرار نفس الهيكل لبقية الشخصيات السبعة... -->
 </div>
 
 <script>
-// Modular Configuration Assets
-const ASSETS = {
-  characters: {
-    asterix: {
-      name: "Asterix",
-      desc: "Smartest warrior of the village! Let's decode the Hiragana sounds.",
-      neutral: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=150&q=80",
-      happy: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&q=80",
-      sad: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&q=80"
-    },
-    obelix: {
-      name: "Obelix",
-      desc: "Loves wild boars and delivering heavy menhirs. Giant memory pool!",
-      neutral: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&q=80",
-      happy: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80",
-      sad: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80"
-    },
-    dogmatix: {
-      name: "Dogmatix",
-      desc: "The small ecological puppy. Barks happily on every correct choice!",
-      neutral: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&q=80",
-      happy: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=150&q=80",
-      sad: "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=150&q=80"
+    function startStage(stageId) {
+        alert("جاري تحميل المرحلة رقم: " + stageId);
+        // هنا تضع كود الانتقال للمرحلة أو اللعبة المصغرة
     }
-  },
-  backgrounds: {
-    seion: "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=800')",
-    hane: "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800')",
-    choon: "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=800')",
-    dakuten: "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800')",
-    sokuon: "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800')",
-    youon: "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800')"
-  }
-};
-
-const DATA = {
-  seion: { name: "Basic Sounds", icon: "🛖", host: "asterix", words: [
-    {k:"あさ", r:"a sa", m:"morning", e:"🌅"},
-    {k:"あき", r:"a ki", m:"autumn", e:"🍂"},
-    {k:"くつ", r:"ku tsu", m:"shoes", e:"👟"},
-    {k:"かわ", r:"ka wa", m:"river", e:"🏞️"},
-    {k:"さいふ", r:"sa i fu", m:"wallet", e:"👛"},
-    {k:"さかな", r:"sa ka na", m:"fish", e:"🐟"},
-    {k:"とり", r:"to ri", m:"bird", e:"🐦"},
-    {k:"は", r:"ha", m:"tooth", e:"🦷"},
-    {k:"はる", r:"ha ru", m:"spring", e:"🌸"},
-    {k:"みみ", r:"mi mi", m:"ear", e:"👂"},
-    {k:"なつ", r:"na tsu", m:"summer", e:"☀️"},
-    {k:"なまえ", r:"na ma e", m:"name", e:"📛"},
-    {k:"えき", r:"e ki", m:"station", e:"🚉"},
-    {k:"ふね", r:"fu ne", m:"ship", e:"🚢"},
-    {k:"ふゆ", r:"fu yu", m:"winter", e:"❄️"},
-    {k:"ねこ", r:"ne ko", m:"cat", e:"🐱"},
-    {k:"いぬ", r:"i nu", m:"dog", e:"🐶"},
-    {k:"やま", r:"ya ma", m:"mountain", e:"⛰️"},
-    {k:"ゆき", r:"yu ki", m:"snow", e:"☃️"},
-    {k:"よる", r:"yo ru", m:"night", e:"🌙"}
-  ]},
-  hane: { name: "The 'n' Sound", icon: "🛖", host: "obelix", words: [
-    {k:"ぱんだ", r:"pa n da", m:"panda", e:"🐼"},
-    {k:"てんとう", r:"te n to o", m:"ladybug", e:"🐞"},
-    {k:"ほん", r:"ho n", m:"book", e:"📖"},
-    {k:"にほん", r:"ni ho n", m:"Japan", e:"🇯🇵"},
-    {k:"とんかつ", r:"to n ka tsu", m:"tonkatsu", e:"🍱"},
-    {k:"かんこく", r:"ka n ko ku", m:"Korea", e:"🇰🇷"},
-    {k:"さんま", r:"sa n ma", m:"sanma fish", e:"🐟"},
-    {k:"かんぱい", r:"ka n pa i", m:"cheers!", e:"🥂"}
-  ]},
-  choon: { name: "Long Vowels", icon: "🛖", host: "dogmatix", words: [
-    {k:"いい", r:"i i", m:"good", e:"👍"},
-    {k:"とけい", r:"to ke e", m:"watch/clock", e:"⏰"},
-    {k:"おかあさん", r:"o ka a sa n", m:"mother", e:"👩"},
-    {k:"おとうさん", r:"o to o sa n", m:"father", e:"👨"},
-    {k:"おとうと", r:"o to o to", m:"younger brother", e:"👦"},
-    {k:"おにいさん", r:"o ni i sa n", m:"older brother", e:"🧑"},
-    {k:"おねえさん", r:"o ne e sa n", m:"older sister", e:"👧"},
-    {k:"いもうと", r:"i mo o to", m:"younger sister", e:"👧"},
-    {k:"せんせい", r:"se n se e", m:"teacher", e:"🧑‍🏫"}
-  ]},
-  dakuten: { name: "Voiced Sounds", icon: "🛖", host: "asterix", words: [
-    {k:"えいが", r:"e e ga", m:"movie", e:"🎬"},
-    {k:"おんがく", r:"o n ga ku", m:"music", e:"🎵"},
-    {k:"でんわ", r:"de n wa", m:"telephone", e:"☎️"},
-    {k:"たまご", r:"ta ma go", m:"egg", e:"🥚"},
-    {k:"みず", r:"mi zu", m:"water", e:"💧"},
-    {k:"がくせい", r:"ga ku se e", m:"student", e:"🎓"},
-    {k:"えいご", r:"e e go", m:"English language", e:"🔤"},
-    {k:"ごはん", r:"go ha n", m:"rice/meal", e:"🍚"},
-    {k:"ごぜん", r:"go ze n", m:"morning (AM)", e:"🌄"},
-    {k:"かばん", r:"ka ba n", m:"bag", e:"👜"},
-    {k:"てんぷら", r:"te n pu ra", m:"tempura", e:"🍤"},
-    {k:"ぎんこう", r:"gi n ko o", m:"bank", e:"🏦"}
-  ]},
-  sokuon: { name: "Double Consonants", icon: "🛖", host: "obelix", words: [
-    {k:"はっぱ", r:"ha ppa", m:"leaf", e:"🍃"},
-    {k:"きっぷ", r:"ki ppu", m:"ticket", e:"🎫"},
-    {k:"ざっし", r:"za sshi", m:"magazine", e:"📰"},
-    {k:"いっかい", r:"i kka i", m:"1st floor", e:"🔢"},
-    {k:"がっこう", r:"ga kko o", m:"school", e:"🏫"}
-  ]},
-  youon: { name: "Compound Sounds", icon: "🛖", host: "dogmatix", words: [
-    {k:"きょう", r:"kyo o", m:"today", e:"📅"},
-    {k:"ゆうびんきょく", r:"yu u bi n kyo ku", m:"post office", e:"📮"},
-    {k:"きゃく", r:"kya ku", m:"guest/customer", e:"🙋"},
-    {k:"ぎゅうにく", r:"gyu u ni ku", m:"beef", e:"🥩"},
-    {k:"きょうしつ", r:"kyo o shi tsu", m:"classroom", e:"🏫"},
-    {k:"かいしゃいん", r:"ka i sha i n", m:"office worker", e:"💼"},
-    {k:"としょかん", r:"to sho ka n", m:"library", e:"📚"},
-    {k:"どくしょ", r:"do ku sho", m:"reading", e:"📖"},
-    {k:"しゅみ", r:"shu mi", m:"hobby", e:"🎨"},
-    {k:"びじゅつかん", r:"bi ju tsu ka n", m:"art museum", e:"🖼️"}
-  ]}
-};
-
-const STAGE_ORDER = ["seion", "hane", "choon", "dakuten", "sokuon", "youon"];
-
-let state = {
-  xp: 0,
-  hearts: 7,
-  unlockedStages: ["seion"],
-  completedStages: {},
-  currentStage: null,
-  quiz: { pool: [], questions: [], index: 0, correctCount: 0, hostKey: "asterix" }
-};
-
-function playVoiceText(text) {
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'ja-JP';
-  utterance.rate = 0.85;
-  window.speechSynthesis.speak(utterance);
-}
-
-function playToneEffect(type) {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    if (type === 'correct') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.12);
-      osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.24);
-      gain.gain.setValueAtTime(0.25, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
-      osc.start(); osc.stop(ctx.currentTime + 0.8);
-    } else if (type === 'wrong') {
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(130, ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(90, ctx.currentTime + 0.35);
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-      osc.start(); osc.stop(ctx.currentTime + 0.4);
-    } else if (type === 'victory') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-      osc.frequency.setValueAtTime(880.00, ctx.currentTime + 0.2);
-      osc.frequency.setValueAtTime(1174.66, ctx.currentTime + 0.4);
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2.0);
-      osc.start(); osc.stop(ctx.currentTime + 2.0);
-    }
-  } catch(e) {}
-}
-
-function navigateToView(viewId) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById('view-' + viewId).classList.add('active');
-  window.scrollTo(0,0);
-}
-
-function updateTopStatusBar() {
-  document.getElementById('xp-counter').textContent = state.xp;
-  document.getElementById('hearts-counter').textContent = state.hearts;
-}
-
-// ==========================================
-// RENDER: THE WINDING VILLAGE ROAD PATH (S-Curve)
-// ==========================================
-function renderWindingVillageRoad() {
-  const roadTrack = document.getElementById('villageRoadWindingTrack');
-  roadTrack.innerHTML = '';
-
-  // Staggered pattern array to simulate real left/right winding movement inside the village grid
-  const positionalPatterns = ["pos-left", "pos-center", "pos-right", "pos-center"];
-
-  STAGE_ORDER.forEach((key, idx) => {
-    const stage = DATA[key];
-    const isUnlocked = state.unlockedStages.includes(key);
-    const isDone = state.completedStages[key];
-    const hostInfo = ASSETS.characters[stage.host];
-
-    // Determine curve layout position
-    const rowClass = positionalPatterns[idx % positionalPatterns.length];
-
-    const rowEl = document.createElement('div');
-    rowEl.className = `road-row ${rowClass}`;
-
-    const wrapper = document.createElement('div');
-    wrapper.className = "hut-node-wrapper";
-
-    const btn = document.createElement('button');
-    btn.className = `hut-btn ${isUnlocked ? '' : 'locked'}`;
-    btn.innerHTML = isUnlocked ? stage.icon : "🔒";
-    
-    if (isDone) {
-      btn.innerHTML += `<span class="stars-badge">⭐⭐⭐</span>`;
-    }
-
-    btn.onclick = () => {
-      if (isUnlocked) enterHouseView(key);
-    };
-
-    const label = document.createElement('div');
-    label.className = "hut-label";
-    label.innerHTML = `${stage.name}<br><span class="hut-host-tag">${hostInfo.name}'s Hut</span>`;
-
-    wrapper.appendChild(btn);
-    wrapper.appendChild(label);
-    rowEl.appendChild(wrapper);
-    roadTrack.appendChild(rowEl);
-  });
-
-  // Final Cauldron Pot Row at the end of the road
-  const finalRow = document.createElement('div');
-  finalRow.className = "road-row pos-center";
-  
-  const cauldron = document.createElement('div');
-  cauldron.className = "magic-cauldron-pot";
-  cauldron.innerHTML = "🧪";
-  cauldron.onclick = () => {
-    if (Object.keys(state.completedStages).length === STAGE_ORDER.length) {
-      triggerFinalCelebration();
-    } else {
-      alert("Finish all available Huts on the village path to taste the Magic Potion!");
-    }
-  };
-
-  finalRow.appendChild(cauldron);
-  roadTrack.appendChild(finalRow);
-}
-
-// ==========================================
-// HOUSE / LESSON OVERVIEW
-// ==========================================
-function enterHouseView(stageKey) {
-  state.currentStage = stageKey;
-  const stage = DATA[stageKey];
-  const host = ASSETS.characters[stage.host];
-
-  const container = document.getElementById('villageHouseBox');
-  container.style.setProperty('--house-bg', ASSETS.backgrounds[stageKey]);
-
-  document.getElementById('houseTitleDisplay').textContent = `${stage.name} Hut Hub`;
-  document.getElementById('houseHostAvatar').src = host.neutral;
-  document.getElementById('houseHostName').textContent = host.name;
-  document.getElementById('houseHostDesc').textContent = host.desc;
-
-  const grid = document.getElementById('lessonWordGrid');
-  grid.innerHTML = '';
-
-  stage.words.forEach(w => {
-    const card = document.createElement('div');
-    card.className = "word-card";
-    card.innerHTML = `
-      <div class="card-top">
-        <button class="audio-icon">🔊</button>
-        <button class="fav-icon">⭐</button>
-      </div>
-      <div class="card-emoji">${w.e}</div>
-      <div class="card-kana">${w.k}</div>
-      <div class="card-romaji">${w.r}</div>
-      <div class="card-meaning">${w.m}</div>
-    `;
-
-    card.querySelector('.audio-icon').onclick = (e) => {
-      e.stopPropagation();
-      playVoiceText(w.k);
-    };
-    card.onclick = () => playVoiceText(w.k);
-    grid.appendChild(card);
-  });
-
-  navigateToView('lesson');
-}
-
-document.getElementById('btnLeaveHouse').onclick = () => {
-  renderWindingVillageRoad();
-  navigateToView('path');
-};
-
-// ==========================================
-// QUIZ FLOW RUNTIME ENGINE
-// ==========================================
-document.getElementById('btnStartHouseQuiz').onclick = () => {
-  setupQuizQueue(DATA[state.currentStage].words, DATA[state.currentStage].host);
-};
-
-function setupQuizQueue(wordsList, hostKey) {
-  state.hearts = 7;
-  updateTopStatusBar();
-  
-  const questions = wordsList.map((w, idx) => {
-    const isTyping = idx % 2 === 1;
-    let options = [];
-    let correct = w.m;
-
-    if (!isTyping) {
-      let pool = [];
-      STAGE_ORDER.forEach(k => DATA[k].words.forEach(ww => { if(ww.m !== w.m) pool.push(ww.m); }));
-      pool = [...new Set(pool)].sort(() => 0.5 - Math.random()).slice(0, 3);
-      options = [w.m, ...pool].sort(() => 0.5 - Math.random());
-    } else {
-      correct = w.r;
-    }
-
-    return { word: w, isTyping, correct, options };
-  });
-
-  state.quiz = {
-    pool: wordsList,
-    questions: questions.sort(() => 0.5 - Math.random()),
-    index: 0,
-    correctCount: 0,
-    hostKey: hostKey
-  };
-
-  updateQuizCharacterAvatar('neutral');
-  navigateToView('quiz');
-  renderNextQuizItem();
-}
-
-function updateQuizCharacterAvatar(mood) {
-  const host = ASSETS.characters[state.quiz.hostKey];
-  const imgEl = document.getElementById('quizReactionAvatar');
-  imgEl.src = host[mood];
-  document.getElementById('quizAvatarName').textContent = host.name;
-  
-  let statusStr = "Watching closely...";
-  if(mood === 'happy') statusStr = "Incredible output! Correct!";
-  if(mood === 'sad') statusStr = "Ouch! Watch out next time!";
-  document.getElementById('quizAvatarStatus').textContent = statusStr;
-}
-
-function renderNextQuizItem() {
-  const q = state.quiz.questions[state.quiz.index];
-  const total = state.quiz.questions.length;
-  
-  document.getElementById('quizProgressFillBar').style.width = `${(state.quiz.index / total) * 100}%`;
-
-  const promptHeading = document.getElementById('quizPromptHeading');
-  const mainQ = document.getElementById('quizQuestionMain');
-  const subQ = document.getElementById('quizQuestionSub');
-  
-  mainQ.textContent = q.word.k;
-  subQ.textContent = q.isTyping ? "Provide the correct Romaji transcription:" : "Match the correct meaning:";
-  promptHeading.textContent = `Question ${state.quiz.index + 1} of ${total}`;
-
-  document.getElementById('quizAudioSpeak').onclick = () => playVoiceText(q.word.k);
-
-  const mcBox = document.getElementById('quizMultipleChoiceBox');
-  const typeBox = document.getElementById('quizTypingBox');
-
-  if (!q.isTyping) {
-    mcBox.style.display = "grid";
-    typeBox.style.display = "none";
-    mcBox.innerHTML = '';
-
-    q.options.forEach(opt => {
-      const btn = document.createElement('button');
-      btn.className = "option-btn";
-      btn.textContent = opt;
-      btn.onclick = () => evaluateSubmittedAnswer(opt, btn);
-      mcBox.appendChild(btn);
-    });
-  } else {
-    mcBox.style.display = "none";
-    typeBox.style.display = "flex";
-    const field = document.getElementById('typingAnswerField');
-    field.value = '';
-    field.focus();
-
-    document.getElementById('btnSubmitTyping').onclick = () => {
-      evaluateSubmittedAnswer(field.value.trim().toLowerCase());
-    };
-  }
-}
-
-function evaluateSubmittedAnswer(userAns, element = null) {
-  const q = state.quiz.questions[state.quiz.index];
-  const popup = document.getElementById('quizFeedbackPopup');
-  const statusTxt = document.getElementById('popupStatusText');
-  const subTxt = document.getElementById('popupSubText');
-
-  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
-  const isCorrect = userAns === q.correct;
-
-  if (isCorrect) {
-    if(element) element.classList.add('correct');
-    state.quiz.correctCount++;
-    state.xp += 15;
-    updateTopStatusBar();
-    updateQuizCharacterAvatar('happy');
-    playToneEffect('correct');
-
-    popup.className = "feedback-bar correct";
-    statusTxt.textContent = "CORRECT 🎉";
-    subTxt.textContent = `"${q.word.k}" translates to "${q.word.m}".`;
-  } else {
-    if(element) element.classList.add('wrong');
-    state.hearts = Math.max(state.hearts - 1, 0);
-    updateTopStatusBar();
-    updateQuizCharacterAvatar('sad');
-    playToneEffect('wrong');
-
-    popup.className = "feedback-bar wrong";
-    statusTxt.textContent = "INCORRECT ❌";
-    subTxt.textContent = `Expected answer: "${q.correct}"`;
-
-    if (state.hearts <= 0) {
-      alert("Out of health hearts! Returning to safe village ground.");
-      closePopupAndContinue(true);
-      return;
-    }
-  }
-
-  document.getElementById('btnPopupContinue').onclick = () => {
-    closePopupAndContinue(false);
-  };
-}
-
-function closePopupAndContinue(forceFail = false) {
-  document.getElementById('quizFeedbackPopup').className = "feedback-bar";
-  updateQuizCharacterAvatar('neutral');
-
-  if (forceFail) {
-    navigateToView('lesson');
-    return;
-  }
-
-  state.quiz.index++;
-  if (state.quiz.index >= state.quiz.questions.length) {
-    concludeActiveStage();
-  } else {
-    renderNextQuizItem();
-  }
-}
-
-function concludeActiveStage() {
-  const total = state.quiz.questions.length;
-  const correct = state.quiz.correctCount;
-  const pct = (correct / total) * 100;
-
-  if (pct >= 60) {
-    state.completedStages[state.currentStage] = true;
-    const currentIdx = STAGE_ORDER.indexOf(state.currentStage);
-    if (currentIdx + 1 < STAGE_ORDER.length) {
-      const nextStageKey = STAGE_ORDER[currentIdx + 1];
-      if (!state.unlockedStages.includes(nextStageKey)) {
-        state.unlockedStages.push(nextStageKey);
-      }
-    }
-  }
-
-  if (Object.keys(state.completedStages).length === STAGE_ORDER.length) {
-    triggerFinalCelebration();
-    return;
-  }
-
-  alert(`Hut Complete! Accuracy: ${correct}/${total}. Winding road path updated!`);
-  renderWindingVillageRoad();
-  navigateToView('path');
-}
-
-// ==========================================
-// FINALE CELEBRATION RESULT VIEW
-// ==========================================
-function triggerFinalCelebration() {
-  playToneEffect('victory');
-  document.getElementById('resScoreCorrect').textContent = `${state.xp} Pts`;
-
-  const row = document.getElementById('victoryAvatarRow');
-  row.innerHTML = '';
-  
-  Object.keys(ASSETS.characters).forEach(k => {
-    const img = document.createElement('img');
-    img.className = "congrats-avatar";
-    img.src = ASSETS.characters[k].happy;
-    img.alt = k;
-    row.appendChild(img);
-  });
-
-  navigateToView('result');
-}
-
-document.getElementById('btnReturnHome').onclick = () => {
-  renderWindingVillageRoad();
-  navigateToView('path');
-};
-
-// Start execution
-(function initApp() {
-  renderWindingVillageRoad();
-  updateTopStatusBar();
-})();
 </script>
 </body>
 </html>
