@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ニホンゴ Duo | تعلّم الهيراغانا</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Baloo+2:wght@500;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#58cc02;
+    --green-dark:#46a302;
+    --blue:#1cb0f6;
+    --blue-dark:#0d95d6;
+    --red:#ff4b4b;
+    --red-dark:#e63e3e;
+    --gold:#ffc800;
+    --gold-dark:#e0ac00;
+    --ink:#3c3c3c;
+    --gray:#e5e5e5;
+    --gray-dark:#afafaf;
+    --bg:#fbf8f2;
+    --card:#ffffff;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    font-family:'Cairo', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+  }
+  button{ font-family:inherit; }
+
+  /* ---- top bar ---- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px;
+    background:#fff;
+    border-bottom:2px solid var(--gray);
+  }
+  .logo{
+    display:flex; align-items:center; gap:8px;
+    font-family:'Zen Maru Gothic', sans-serif; font-weight:900; font-size:18px;
+    color:var(--green-dark);
+  }
+  .stats{ display:flex; gap:10px; }
+  .stat-pill{
+    display:flex; align-items:center; gap:5px;
+    background:var(--bg); border:2px solid var(--gray); border-radius:14px;
+    padding:4px 10px; font-weight:800; font-size:13px;
+  }
+  .stat-pill.gold{ color:var(--gold-dark); border-color:#ffe27a; background:#fff8e0; }
+  .stat-pill.red{ color:var(--red-dark); border-color:#ffc9c9; background:#fff0f0; }
+
+  main{ max-width:640px; margin:0 auto; padding:18px 16px 60px; }
+
+  /* ---- PATH VIEW ---- */
+  .path-title{
+    text-align:center; margin:10px 0 26px;
+  }
+  .path-title h1{
+    font-family:'Zen Maru Gothic', sans-serif; font-weight:900;
+    font-size:22px; color:var(--ink); margin:0 0 4px;
+  }
+  .path-title p{ margin:0; font-size:13px; color:#8a8a8a; font-weight:600; }
+
+  .path{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    position:relative;
+  }
+  .path-connector{
+    width:4px; height:34px; background:repeating-linear-gradient(var(--gray-dark), var(--gray-dark) 6px, transparent 6px, transparent 12px);
+  }
+  .node-wrap{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .node{
+    width:88px; height:88px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:36px;
+    cursor:pointer; position:relative;
+    border:none;
+    box-shadow: 0 8px 0 var(--shadow-c, var(--green-dark));
+    background:var(--main-c, var(--green));
+    transition:transform .08s ease;
+  }
+  .node:active{ transform:translateY(6px); box-shadow:0 2px 0 var(--shadow-c, var(--green-dark)); }
+  .node.locked{ background:var(--gray); --shadow-c:var(--gray-dark); cursor:default; }
+  .node .stars{
+    position:absolute; bottom:-14px; left:50%; transform:translateX(-50%);
+    background:#fff; border:2px solid var(--gray); border-radius:10px;
+    font-size:11px; padding:1px 6px; white-space:nowrap; font-weight:800; color:var(--gold-dark);
+  }
+  .node-label{
+    font-weight:800; font-size:13px; color:var(--ink); text-align:center; margin-top:8px;
+  }
+  .node-sub{ font-size:11px; color:#9a9a9a; font-weight:600; }
+  .quiz-mini-btn{
+    margin-top:4px;
+    font-size:11px; font-weight:800; color:var(--blue-dark);
+    background:#eaf8ff; border:2px solid #bdeaff; border-radius:10px;
+    padding:4px 10px; cursor:pointer;
+  }
+
+  .full-test-card{
+    margin-top:36px; background:linear-gradient(135deg,#fff4d6,#ffe9b3);
+    border:3px solid var(--gold); border-radius:20px; padding:18px;
+    text-align:center;
+  }
+  .full-test-card h3{ margin:4px 0 6px; font-family:'Zen Maru Gothic',sans-serif; font-size:17px; }
+  .full-test-card p{ margin:0 0 12px; font-size:13px; color:#7a6320; }
+
+  /* ---- buttons (duolingo 3D style) ---- */
+  .btn{
+    display:inline-block; border:none; border-radius:16px;
+    padding:13px 20px; font-weight:800; font-size:15px; cursor:pointer;
+    color:#fff; box-shadow:0 5px 0 var(--sc);
+    transition:transform .08s ease;
+  }
+  .btn:active{ transform:translateY(4px); box-shadow:0 1px 0 var(--sc); }
+  .btn-green{ background:var(--green); --sc:var(--green-dark); }
+  .btn-blue{ background:var(--blue); --sc:var(--blue-dark); }
+  .btn-gold{ background:var(--gold); --sc:var(--gold-dark); color:#5c4400; }
+  .btn-gray{ background:#fff; color:var(--ink); border:2px solid var(--gray); box-shadow:0 5px 0 var(--gray); }
+  .btn-outline{ background:#fff; color:var(--blue-dark); border:2px solid var(--blue); box-shadow:0 5px 0 #bdeaff; }
+  .btn-block{ display:block; width:100%; text-align:center; }
+  .btn:disabled{ opacity:.5; cursor:default; }
+
+  /* ---- LESSON VIEW (grid/study) ---- */
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .back-btn{
+    background:#fff; border:2px solid var(--gray); border-radius:12px;
+    width:38px; height:38px; font-size:16px; cursor:pointer;
+  }
+  .lesson-head{ font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:18px; }
+
+  .mode-toggle{ display:flex; gap:8px; margin:0 0 16px; }
+  .mode-btn{
+    font-weight:800; font-size:12px; padding:8px 14px; border-radius:20px;
+    border:2px solid var(--gray); background:#fff; color:#888; cursor:pointer;
+  }
+  .mode-btn.active{ background:var(--blue); border-color:var(--blue-dark); color:#fff; }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; }
+  .card{ perspective:1000px; height:210px; cursor:pointer; }
+  .card-inner{
+    position:relative; width:100%; height:100%;
+    transform-style:preserve-3d; transition:transform .5s cubic-bezier(.2,.9,.3,1);
+    border-radius:18px;
+  }
+  .card.flipped .card-inner{ transform:rotateY(180deg); }
+  .face{
+    position:absolute; inset:0; border-radius:18px; backface-visibility:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:12px; border:2px solid var(--gray); background:var(--card);
+  }
+  .face-back{ transform:rotateY(180deg); background:var(--ink); color:#fff; border-color:#222; }
+  .emoji{ font-size:42px; margin-bottom:6px; }
+  .kana{ font-family:'Zen Maru Gothic',sans-serif; font-size:24px; font-weight:800; color:var(--ink); }
+  .face-back .kana-echo{ font-size:12px; color:#bbb; margin-bottom:4px; }
+  .romaji-front{ font-size:11px; color:#aaa; margin-top:3px; font-weight:700; }
+  .meaning{ font-size:16px; font-weight:800; text-align:center; }
+  .difficulty{ font-size:11px; margin-top:6px; }
+  .speak-btn{
+    position:absolute; top:8px; left:8px; background:var(--blue); color:#fff;
+    border:none; border-radius:50%; width:28px; height:28px; font-size:13px; cursor:pointer;
+    box-shadow:0 3px 0 var(--blue-dark); z-index:5;
+  }
+  .star-btn{
+    position:absolute; top:8px; right:8px; background:none; border:none;
+    font-size:17px; cursor:pointer; opacity:.4; z-index:5;
+  }
+  .star-btn.on{ opacity:1; }
+
+  /* study single card mode */
+  .study{ display:none; flex-direction:column; align-items:center; gap:16px; }
+  .study.active{ display:flex; }
+  .study-card{ width:min(320px,90vw); height:230px; }
+  .study-nav{ display:flex; align-items:center; gap:18px; }
+  .nav-btn{
+    background:var(--blue); color:#fff; border:none; width:44px; height:44px;
+    border-radius:50%; font-size:18px; cursor:pointer; box-shadow:0 4px 0 var(--blue-dark);
+  }
+  .nav-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--blue-dark); }
+  .study-count{ font-weight:800; font-size:14px; }
+
+  /* ---- QUIZ VIEW ---- */
+  .quiz-topbar{ display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+  .quiz-progress{ flex:1; height:14px; background:var(--gray); border-radius:8px; overflow:hidden; }
+  .quiz-progress-fill{ height:100%; background:var(--green); width:0%; transition:width .3s; }
+  .quiz-hearts{ font-size:15px; font-weight:800; color:var(--red-dark); white-space:nowrap; }
+  .quiz-x{ background:none; border:none; font-size:20px; color:#bbb; cursor:pointer; }
+
+  .quiz-question-box{
+    background:var(--card); border:2px solid var(--gray); border-radius:20px;
+    padding:26px 18px; text-align:center; margin-bottom:22px;
+  }
+  .quiz-prompt{ font-size:13px; font-weight:700; color:#9a9a9a; margin-bottom:10px; }
+  .quiz-main{ font-family:'Zen Maru Gothic',sans-serif; font-size:34px; font-weight:800; }
+  .quiz-sub{ font-size:14px; color:#aaa; margin-top:6px; font-weight:700; }
+  .quiz-speak{
+    margin-top:12px; background:var(--blue); color:#fff; border:none;
+    border-radius:50%; width:44px; height:44px; font-size:18px; cursor:pointer;
+    box-shadow:0 4px 0 var(--blue-dark);
+  }
+
+  .options{ display:flex; flex-direction:column; gap:12px; }
+  .opt-btn{
+    background:#fff; border:2px solid var(--gray); border-radius:14px;
+    padding:15px; font-size:16px; font-weight:700; cursor:pointer; text-align:center;
+    box-shadow:0 4px 0 var(--gray);
+  }
+  .opt-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--gray); }
+  .opt-btn.correct{ background:#d7ffb8; border-color:var(--green); box-shadow:0 4px 0 var(--green-dark); color:var(--green-dark); }
+  .opt-btn.wrong{ background:#ffd6d6; border-color:var(--red); box-shadow:0 4px 0 var(--red-dark); color:var(--red-dark); }
+  .opt-btn:disabled{ cursor:default; }
+
+  .feedback-bar{
+    position:fixed; bottom:0; left:0; right:0; z-index:30;
+    padding:16px; display:none; align-items:center; justify-content:space-between; gap:12px;
+    border-top:3px solid;
+  }
+  .feedback-bar.show{ display:flex; }
+  .feedback-bar.ok{ background:#d7ffb8; border-color:var(--green); }
+  .feedback-bar.bad{ background:#ffd6d6; border-color:var(--red); }
+  .feedback-text{ font-weight:900; font-size:16px; }
+  .feedback-bar.ok .feedback-text{ color:var(--green-dark); }
+  .feedback-bar.bad .feedback-text{ color:var(--red-dark); }
+  .feedback-sub{ font-size:12px; font-weight:700; color:#666; }
+
+  /* ---- RESULT VIEW ---- */
+  .result{ text-align:center; padding:20px 10px; }
+  .result-emoji{ font-size:70px; }
+  .result h2{ font-family:'Zen Maru Gothic',sans-serif; font-size:24px; margin:8px 0; }
+  .result-stars{ font-size:34px; margin:10px 0; }
+  .result-stats{ display:flex; justify-content:center; gap:14px; margin:18px 0 26px; flex-wrap:wrap; }
+  .rstat{
+    background:#fff; border:2px solid var(--gray); border-radius:14px; padding:10px 18px; min-width:90px;
+  }
+  .rstat b{ display:block; font-size:20px; }
+  .rstat span{ font-size:11px; color:#999; font-weight:700; }
+  .result-actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+  footer{ text-align:center; padding:20px; font-size:12px; color:#b3b3b3; }
+
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  @media (prefers-reduced-motion: reduce){ .card-inner{ transition:none; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">⛩️ ニホンゴ Duo</div>
+  <div class="stats">
+    <div class="stat-pill gold">⭐ <span id="xpVal">0</span> XP</div>
+    <div class="stat-pill red">❤️ <span id="heartsVal">5</span></div>
+  </div>
+</div>
+
+<main>
+
+  <div class="view active" id="view-path">
+    <div class="path-title">
+      <h1>مسار تعلّم الهيراغانا</h1>
+      <p>أكمل كل مرحلة ثم اختبر نفسك للانتقال للمرحلة التالية</p>
+    </div>
+    <div class="path" id="pathContainer"></div>
+
+    <div class="full-test-card">
+      <div style="font-size:30px;">🏆</div>
+      <h3>الاختبار الشامل</h3>
+      <p>اختبار واحد يجمع كل الكلمات (٧٣ كلمة) من كل المراحل</p>
+      <button class="btn btn-gold" id="fullTestBtn">ابدأ الاختبار الشامل</button>
+    </div>
+  </div>
+
+  <div class="view" id="view-lesson">
+    <div class="back-row">
+      <button class="back-btn" id="lessonBack">→</button>
+      <div class="lesson-head" id="lessonTitle">—</div>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btnGrid">🀄 الشبكة</button>
+      <button class="mode-btn" id="btnStudy">📖 مراجعة</button>
+      <button class="mode-btn" id="btnQuizFromLesson">📝 اختبار المرحلة</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="study" id="studyView">
+      <div class="card study-card" id="studyCard">
+        <div class="card-inner">
+          <div class="face face-front">
+            <button class="speak-btn" id="sSpeak">🔊</button>
+            <div class="emoji" id="sEmoji">🌸</div>
+            <div class="kana" id="sKana">—</div>
+            <div class="romaji-front" id="sRomajiFront">—</div>
+            <div class="difficulty" id="sDiff">⭐</div>
+          </div>
+          <div class="face face-back">
+            <div class="kana-echo" id="sKanaEcho">—</div>
+            <div class="meaning" id="sMeaning">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="study-nav">
+        <button class="nav-btn" id="prevBtn">›</button>
+        <span class="study-count" id="studyCount">1 / 1</span>
+        <button class="nav-btn" id="nextBtn">‹</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-quiz">
+    <div class="quiz-topbar">
+      <button class="quiz-x" id="quizExit">✕</button>
+      <div class="quiz-progress"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+      <div class="quiz-hearts">❤️ <span id="quizHearts">5</span></div>
+    </div>
+    <div class="quiz-question-box">
+      <div class="quiz-prompt" id="quizPrompt">اختر المعنى الصحيح</div>
+      <div class="quiz-main" id="quizMain">—</div>
+      <div class="quiz-sub" id="quizSub"></div>
+      <button class="quiz-speak" id="quizSpeakBtn">🔊</button>
+    </div>
+    <div class="options" id="quizOptions"></div>
+  </div>
+
+  <div class="view" id="view-result">
+    <div class="result">
+      <div class="result-emoji" id="resultEmoji">🎉</div>
+      <h2 id="resultTitle">أحسنت!</h2>
+      <div class="result-stars" id="resultStars">⭐⭐⭐</div>
+      <div class="result-stats">
+        <div class="rstat"><b id="resultScore">0/0</b><span>الإجابات الصحيحة</span></div>
+        <div class="rstat"><b id="resultPercent">0%</b><span>النسبة</span></div>
+        <div class="rstat"><b id="resultXP">0</b><span>XP مكتسبة</span></div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-green" id="retryBtn">🔁 إعادة الاختبار</button>
+        <button class="btn btn-gray" id="homeBtn">🏠 الرئيسية</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="feedback-bar" id="feedbackBar">
+  <div>
+    <div class="feedback-text" id="feedbackText">صحيح!</div>
+    <div class="feedback-sub" id="feedbackSub"></div>
+  </div>
+  <button class="btn btn-green" id="continueBtn">متابعة</button>
+</div>
+
+<footer>🎋 اضغط 🔊 لسماع نطق الكلمة · ⭐ لتمييز ما حفظته · ابدأ اختبار كل مرحلة لفتح ما بعدها 🎋</footer>
+
+<script>
+const DATA = {
+  seion: { name:"الأصوات الأساسية", icon:"🌸", color:"#58cc02", shadow:"#46a302", words:[
+    {k:"あさ", r:"a sa", m:"صباح", e:"🌅", d:1},
+    {k:"あき", r:"a ki", m:"خريف", e:"🍂", d:1},
+    {k:"くつ", r:"ku tsu", m:"حذاء", e:"👟", d:1},
+    {k:"かわ", r:"ka wa", m:"نهر", e:"🏞️", d:1},
+    {k:"さいふ", r:"sa i fu", m:"محفظة", e:"👛", d:2},
+    {k:"さかな", r:"sa ka na", m:"سمك", e:"🐟", d:2},
+    {k:"とり", r:"to ri", m:"طائر", e:"🐦", d:1},
+    {k:"は", r:"ha", m:"سِنّ (ضرس)", e:"🦷", d:1},
+    {k:"はる", r:"ha ru", m:"ربيع", e:"🌸", d:1},
+    {k:"みみ", r:"mi mi", m:"أذن", e:"👂", d:1},
+    {k:"なつ", r:"na tsu", m:"صيف", e:"☀️", d:1},
+    {k:"なまえ", r:"na ma e", m:"اسم", e:"📛", d:2},
+    {k:"えき", r:"e ki", m:"محطة", e:"🚉", d:1},
+    {k:"ふね", r:"fu ne", m:"سفينة", e:"🚢", d:1},
+    {k:"ふゆ", r:"fu yu", m:"شتاء", e:"❄️", d:1},
+    {k:"ねこ", r:"ne ko", m:"قطة", e:"🐱", d:1},
+    {k:"いぬ", r:"i nu", m:"كلب", e:"🐶", d:1},
+    {k:"やま", r:"ya ma", m:"جبل", e:"⛰️", d:1},
+    {k:"ゆき", r:"yu ki", m:"ثلج", e:"☃️", d:1},
+    {k:"よる", r:"yo ru", m:"ليل", e:"🌙", d:1},
+  ]},
+  hane: { name:"صوت ん", icon:"🏮", color:"#1cb0f6", shadow:"#0d95d6", words:[
+    {k:"ぱんだ", r:"pa n da", m:"باندا", e:"🐼", d:2},
+    {k:"てんとう", r:"te n to o", m:"دعسوقة", e:"🐞", d:3},
+    {k:"ほん", r:"ho n", m:"كتاب", e:"📖", d:1},
+    {k:"にほん", r:"ni ho n", m:"اليابان", e:"🇯🇵", d:2},
+    {k:"とんかつ", r:"to n ka tsu", m:"كاتسو (لحم خنزير مقلي)", e:"🍱", d:3},
+    {k:"かんこく", r:"ka n ko ku", m:"كوريا", e:"🇰🇷", d:2},
+    {k:"さんま", r:"sa n ma", m:"سمك السانما", e:"🐟", d:2},
+    {k:"かんぱい", r:"ka n pa i", m:"نخبكم! (كانباي)", e:"🥂", d:3},
+  ]},
+  choon: { name:"المدّ الصوتي", icon:"🏯", color:"#ff9600", shadow:"#d67e00", words:[
+    {k:"いい", r:"i i", m:"جيّد", e:"👍", d:1},
+    {k:"とけい", r:"to ke e", m:"ساعة", e:"⏰", d:2},
+    {k:"おかあさん", r:"o ka a sa n", m:"الأم", e:"👩", d:3},
+    {k:"おとうさん", r:"o to o sa n", m:"الأب", e:"👨", d:3},
+    {k:"おとうと", r:"o to o to", m:"الأخ الأصغر", e:"👦", d:3},
+    {k:"おにいさん", r:"o ni i sa n", m:"الأخ الأكبر", e:"🧑", d:3},
+    {k:"おねえさん", r:"o ne e sa n", m:"الأخت الكبرى", e:"👧", d:3},
+    {k:"いもうと", r:"i mo o to", m:"الأخت الصغرى", e:"👧", d:2},
+    {k:"せんせい", r:"se n se e", m:"معلّم / أستاذ", e:"🧑‍🏫", d:2},
+  ]},
+  dakuten: { name:"الأصوات المجهورة", icon:"⛩️", color:"#ce82ff", shadow:"#a54ee0", words:[
+    {k:"えいが", r:"e e ga", m:"فيلم", e:"🎬", d:2},
+    {k:"おんがく", r:"o n ga ku", m:"موسيقى", e:"🎵", d:2},
+    {k:"でんわ", r:"de n wa", m:"هاتف", e:"☎️", d:1},
+    {k:"たまご", r:"ta ma go", m:"بيضة", e:"🥚", d:1},
+    {k:"みず", r:"mi zu", m:"ماء", e:"💧", d:1},
+    {k:"がくせい", r:"ga ku se e", m:"طالب", e:"🎓", d:2},
+    {k:"えいご", r:"e e go", m:"اللغة الإنجليزية", e:"🔤", d:2},
+    {k:"ごはん", r:"go ha n", m:"أرز / وجبة", e:"🍚", d:1},
+    {k:"ごぜん", r:"go ze n", m:"صباحًا (AM)", e:"🌄", d:2},
+    {k:"かばん", r:"ka ba n", m:"حقيبة", e:"👜", d:1},
+    {k:"てんぷら", r:"te n pu ra", m:"تمبورا", e:"🍤", d:2},
+    {k:"ぎんこう", r:"gi n ko o", m:"بنك", e:"🏦", d:2},
+  ]},
+  sokuon: { name:"الصوت المزدوج っ", icon:"🎋", color:"#2b9348", shadow:"#1c6b32", words:[
+    {k:"はっぱ", r:"ha ppa", m:"ورقة شجر", e:"🍃", d:2},
+    {k:"きっぷ", r:"ki ppu", m:"تذكرة", e:"🎫", d:2},
+    {k:"ざっし", r:"za sshi", m:"مجلة", e:"📰", d:2},
+    {k:"いっかい", r:"i kka i", m:"الطابق الأول / مرة واحدة", e:"🔢", d:3},
+    {k:"がっこう", r:"ga kko o", m:"مدرسة", e:"🏫", d:1},
+  ]},
+  youon: { name:"الأصوات المركّبة", icon:"🍵", color:"#ff4b4b", shadow:"#e63e3e", words:[
+    {k:"きょう", r:"kyo o", m:"اليوم", e:"📅", d:1},
+    {k:"ゆうびんきょく", r:"yu u bi n kyo ku", m:"مكتب البريد", e:"📮", d:3},
+    {k:"きゃく", r:"kya ku", m:"ضيف / زبون", e:"🙋", d:2},
+    {k:"ぎゅうにく", r:"gyu u ni ku", m:"لحم بقر", e:"🥩", d:2},
+    {k:"きょうしつ", r:"kyo o shi tsu", m:"فصل دراسي", e:"🏫", d:2},
+    {k:"かいしゃいん", r:"ka i sha i n", m:"موظف شركة", e:"💼", d:3},
+    {k:"としょかん", r:"to sho ka n", m:"مكتبة", e:"📚", d:2},
+    {k:"どくしょ", r:"do ku sho", m:"القراءة (كهواية)", e:"📖", d:2},
+    {k:"しゅみ", r:"shu mi", m:"هواية", e:"🎨", d:2},
+    {k:"びじゅつかん", r:"bi ju tsu ka n", m:"متحف فني", e:"🖼️", d:3},
+    {k:"おちゃ", r:"o cha", m:"شاي أخضر", e:"🍵", d:1},
+    {k:"こうちゃ", r:"ko o cha", m:"شاي أسود", e:"☕", d:2},
+    {k:"ちゅうごく", r:"chu u go ku", m:"الصين", e:"🇨🇳", d:2},
+    {k:"ぎゅうにゅう", r:"gyu u nyu u", m:"حليب", e:"🥛", d:2},
+    {k:"こんにゃく", r:"ko n nya ku", m:"كونياكو (جذر نباتي)", e:"🍢", d:3},
+    {k:"ひゃくえん", r:"hya ku e n", m:"مئة ين", e:"💴", d:2},
+    {k:"びょういん", r:"byo o i n", m:"مستشفى", e:"🏥", d:2},
+    {k:"りょこう", r:"ryo ko o", m:"سفر / رحلة", e:"✈️", d:2},
+    {k:"りょうり", r:"ryo o ri", m:"طبخ", e:"🍳", d:2},
+  ]}
+};
+
+const GROUP_ORDER = ["seion","hane","choon","dakuten","sokuon","youon"];
+
+let state = {
+  view:'path',
+  currentGroup:null,
+  lessonMode:'grid',
+  studyIndex:0,
+  known:{},
+  xp:0,
+  hearts:5,
+  progress:{}, // groupKey -> {done:bool, stars:int}
+  quiz:{ pool:[], index:0, correct:0, wrong:0, questions:[] }
+};
+
+// ---------- storage ----------
+async function loadState(){
+  try{
+    const k = await window.storage.get('hiragana-known', false);
+    state.known = k && k.value ? JSON.parse(k.value) : {};
+  }catch(e){ state.known = {}; }
+  try{
+    const x = await window.storage.get('hiragana-xp', false);
+    state.xp = x && x.value ? parseInt(x.value) : 0;
+  }catch(e){ state.xp = 0; }
+  try{
+    const p = await window.storage.get('hiragana-progress', false);
+    state.progress = p && p.value ? JSON.parse(p.value) : {};
+  }catch(e){ state.progress = {}; }
+}
+async function saveKnown(){ try{ await window.storage.set('hiragana-known', JSON.stringify(state.known), false); }catch(e){} }
+async function saveXP(){ try{ await window.storage.set('hiragana-xp', String(state.xp), false); }catch(e){} }
+async function saveProgress(){ try{ await window.storage.set('hiragana-progress', JSON.stringify(state.progress), false); }catch(e){} }
+
+function wordId(g, idx){ return g+'-'+idx; }
+
+// ---------- speech ----------
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ja-JP';
+    u.rate = 0.8;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+// ---------- view switching ----------
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  state.view = name;
+}
+
+function refreshTopbar(){
+  document.getElementById('xpVal').textContent = state.xp;
+  document.getElementById('heartsVal').textContent = Math.max(state.hearts,0);
+}
+
+// ---------- PATH VIEW ----------
+function isUnlocked(idx){
+  if(idx === 0) return true;
+  const prevKey = GROUP_ORDER[idx-1];
+  return !!(state.progress[prevKey] && state.progress[prevKey].done);
+}
+
+function buildPath(){
+  const el = document.getElementById('pathContainer');
+  el.innerHTML = '';
+  GROUP_ORDER.forEach((key, idx)=>{
+    const g = DATA[key];
+    const unlocked = isUnlocked(idx);
+    const prog = state.progress[key] || {done:false, stars:0};
+    if(idx>0){
+      const conn = document.createElement('div');
+      conn.className = 'path-connector';
+      el.appendChild(conn);
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'node-wrap';
+    const node = document.createElement('button');
+    node.className = 'node' + (unlocked?'':' locked');
+    node.style.setProperty('--main-c', unlocked? g.color : '');
+    node.style.setProperty('--shadow-c', unlocked? g.shadow : '');
+    node.innerHTML = (unlocked? g.icon : '🔒') + (prog.done? `<span class="stars">${'⭐'.repeat(prog.stars||1)}</span>` : '');
+    node.onclick = ()=>{ if(unlocked){ openLesson(key); } };
+    wrap.appendChild(node);
+    const label = document.createElement('div');
+    label.className = 'node-label';
+    label.textContent = g.name;
+    wrap.appendChild(label);
+    const sub = document.createElement('div');
+    sub.className = 'node-sub';
+    sub.textContent = g.words.length + ' كلمة';
+    wrap.appendChild(sub);
+    if(unlocked){
+      const qbtn = document.createElement('button');
+      qbtn.className = 'quiz-mini-btn';
+      qbtn.textContent = '📝 اختبار المرحلة';
+      qbtn.onclick = (ev)=>{ ev.stopPropagation(); startQuiz(g.words.map((w,i)=>({...w, group:key, id:wordId(key,i)})), key); };
+      wrap.appendChild(qbtn);
+    }
+    el.appendChild(wrap);
+  });
+}
+
+document.getElementById('fullTestBtn').onclick = ()=>{
+  let all = [];
+  GROUP_ORDER.forEach(key=>{
+    DATA[key].words.forEach((w,i)=> all.push({...w, group:key, id:wordId(key,i)}));
+  });
+  startQuiz(all, null);
+};
+
+// ---------- LESSON VIEW ----------
+function openLesson(key){
+  state.currentGroup = key;
+  state.studyIndex = 0;
+  state.lessonMode = 'grid';
+  document.getElementById('lessonTitle').textContent = DATA[key].icon + ' ' + DATA[key].name;
+  document.getElementById('btnGrid').classList.add('active');
+  document.getElementById('btnStudy').classList.remove('active');
+  document.getElementById('grid').style.display = 'grid';
+  document.getElementById('studyView').classList.remove('active');
+  buildGrid();
+  buildStudy();
+  showView('lesson');
+}
+document.getElementById('lessonBack').onclick = ()=>{ buildPath(); showView('path'); };
+
+function difficultyStars(d){ return '⭐'.repeat(d) + '<span style="opacity:.25">' + '⭐'.repeat(3-d) + '</span>'; }
+
+function buildGrid(){
+  const key = state.currentGroup;
+  const g = DATA[key];
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  g.words.forEach((w, idx)=>{
+    const id = wordId(key, idx);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <button class="speak-btn" data-speak="${w.k}">🔊</button>
+      <button class="star-btn ${state.known[id]?'on':''}" data-id="${id}">⭐</button>
+      <div class="card-inner">
+        <div class="face face-front">
+          <div class="emoji">${w.e}</div>
+          <div class="kana">${w.k}</div>
+          <div class="romaji-front">${w.r}</div>
+          <div class="difficulty">${difficultyStars(w.d)}</div>
+        </div>
+        <div class="face face-back">
+          <div class="kana-echo">${w.r}</div>
+          <div class="meaning">${w.m}</div>
+        </div>
+      </div>`;
+    card.addEventListener('click', (ev)=>{
+      if(ev.target.closest('.star-btn') || ev.target.closest('.speak-btn')) return;
+      card.classList.toggle('flipped');
+    });
+    card.querySelector('.speak-btn').addEventListener('click', (ev)=>{ ev.stopPropagation(); speak(w.k); });
+    card.querySelector('.star-btn').addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      state.known[id] = !state.known[id];
+      ev.currentTarget.classList.toggle('on');
+      saveKnown();
+    });
+    grid.appendChild(card);
+  });
+}
+
+function buildStudy(){
+  const key = state.currentGroup;
+  const g = DATA[key];
+  const w = g.words[state.studyIndex];
+  document.getElementById('sEmoji').textContent = w.e;
+  document.getElementById('sKana').textContent = w.k;
+  document.getElementById('sRomajiFront').textContent = w.r;
+  document.getElementById('sDiff').innerHTML = difficultyStars(w.d);
+  document.getElementById('sKanaEcho').textContent = w.r;
+  document.getElementById('sMeaning').textContent = w.m;
+  document.getElementById('studyCount').textContent = (state.studyIndex+1) + ' / ' + g.words.length;
+  document.getElementById('studyCard').classList.remove('flipped');
+  document.getElementById('sSpeak').onclick = (ev)=>{ ev.stopPropagation(); speak(w.k); };
+}
+
+document.getElementById('btnGrid').onclick = ()=>{
+  state.lessonMode='grid';
+  document.getElementById('btnGrid').classList.add('active');
+  document.getElementById('btnStudy').classList.remove('active');
+  document.getElementById('grid').style.display='grid';
+  document.getElementById('studyView').classList.remove('active');
+};
+document.getElementById('btnStudy').onclick = ()=>{
+  state.lessonMode='study';
+  document.getElementById('btnStudy').classList.add('active');
+  document.getElementById('btnGrid').classList.remove('active');
+  document.getElementById('grid').style.display='none';
+  document.getElementById('studyView').classList.add('active');
+  buildStudy();
+};
+document.getElementById('btnQuizFromLesson').onclick = ()=>{
+  const key = state.currentGroup;
+  const words = DATA[key].words.map((w,i)=>({...w, group:key, id:wordId(key,i)}));
+  startQuiz(words, key);
+};
+document.getElementById('studyCard').addEventListener('click', ()=>{
+  document.getElementById('studyCard').classList.toggle('flipped');
+});
+document.getElementById('prevBtn').onclick = ()=>{
+  const g = DATA[state.currentGroup];
+  state.studyIndex = (state.studyIndex - 1 + g.words.length) % g.words.length;
+  buildStudy();
+};
+document.getElementById('nextBtn').onclick = ()=>{
+  const g = DATA[state.currentGroup];
+  state.studyIndex = (state.studyIndex + 1) % g.words.length;
+  buildStudy();
+};
+
+// ---------- QUIZ ----------
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function buildQuestions(pool){
+  return pool.map((w, i)=>{
+    const type = i % 3; // 0: kana->meaning, 1: meaning->kana, 2: kana->romaji
+    let correct, distractorsPoolField;
+    if(type===0){ correct = w.m; distractorsPoolField='m'; }
+    else if(type===1){ correct = w.k; distractorsPoolField='k'; }
+    else { correct = w.r; distractorsPoolField='r'; }
+    // gather distractors from whole DATA set excluding this word
+    let allWords = [];
+    GROUP_ORDER.forEach(key=> DATA[key].words.forEach((ww,idx)=> allWords.push({...ww, group:key, id:wordId(key,idx)})));
+    let candidates = allWords.filter(ww => ww.id !== w.id && ww[distractorsPoolField] !== correct);
+    candidates = shuffle(candidates).slice(0,3);
+    let options = shuffle([correct, ...candidates.map(c=>c[distractorsPoolField])]);
+    return { word:w, type, correct, options };
+  });
+}
+
+function startQuiz(pool, groupKey){
+  const questions = buildQuestions(pool);
+  state.quiz = { pool, index:0, correct:0, wrong:0, questions, groupKey };
+  state.hearts = 5;
+  refreshTopbar();
+  showView('quiz');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = state.quiz.questions[state.quiz.index];
+  document.getElementById('quizProgressFill').style.width = (state.quiz.index/state.quiz.questions.length*100)+'%';
+  document.getElementById('quizHearts').textContent = Math.max(state.hearts,0);
+  const promptEl = document.getElementById('quizPrompt');
+  const mainEl = document.getElementById('quizMain');
+  const subEl = document.getElementById('quizSub');
+  const speakBtn = document.getElementById('quizSpeakBtn');
+  if(q.type===0){
+    promptEl.textContent = 'ما معنى هذه الكلمة؟';
+    mainEl.textContent = q.word.k;
+    subEl.textContent = q.word.r;
+    speakBtn.style.display='inline-block';
+    speakBtn.onclick = ()=> speak(q.word.k);
+  } else if(q.type===1){
+    promptEl.textContent = 'اختر الكلمة اليابانية الصحيحة لهذا المعنى';
+    mainEl.textContent = q.word.m;
+    subEl.textContent = q.word.e;
+    speakBtn.style.display='none';
+  } else {
+    promptEl.textContent = 'اختر النطق الصحيح (روماجي)';
+    mainEl.textContent = q.word.k;
+    subEl.textContent = q.word.m;
+    speakBtn.style.display='inline-block';
+    speakBtn.onclick = ()=> speak(q.word.k);
+  }
+  const optWrap = document.getElementById('quizOptions');
+  optWrap.innerHTML = '';
+  q.options.forEach(opt=>{
+    const b = document.createElement('button');
+    b.className = 'opt-btn';
+    b.textContent = opt;
+    b.onclick = ()=> answerQuestion(opt, b);
+    optWrap.appendChild(b);
+  });
+}
+
+function answerQuestion(selected, btnEl){
+  const q = state.quiz.questions[state.quiz.index];
+  const allBtns = document.querySelectorAll('#quizOptions .opt-btn');
+  allBtns.forEach(b=> b.disabled = true);
+  const isCorrect = selected === q.correct;
+  if(isCorrect){
+    btnEl.classList.add('correct');
+    state.quiz.correct++;
+    state.xp += 10;
+    saveXP();
+  } else {
+    btnEl.classList.add('wrong');
+    allBtns.forEach(b=>{ if(b.textContent===q.correct) b.classList.add('correct'); });
+    state.quiz.wrong++;
+    state.hearts = Math.max(state.hearts-1, 0);
+  }
+  refreshTopbar();
+  showFeedback(isCorrect, q);
+}
+
+function showFeedback(isCorrect, q){
+  const bar = document.getElementById('feedbackBar');
+  bar.className = 'feedback-bar show ' + (isCorrect?'ok':'bad');
+  document.getElementById('feedbackText').textContent = isCorrect? '✅ صحيح!' : '❌ إجابة خاطئة';
+  document.getElementById('feedbackSub').textContent = isCorrect? '' : ('الصحيح: ' + q.correct);
+}
+document.getElementById('continueBtn').onclick = ()=>{
+  document.getElementById('feedbackBar').classList.remove('show');
+  state.quiz.index++;
+  if(state.quiz.index >= state.quiz.questions.length){
+    finishQuiz();
+  } else {
+    renderQuestion();
+  }
+};
+document.getElementById('quizExit').onclick = ()=>{
+  document.getElementById('feedbackBar').classList.remove('show');
+  buildPath();
+  showView('path');
+};
+
+function finishQuiz(){
+  const total = state.quiz.questions.length;
+  const correct = state.quiz.correct;
+  const pct = Math.round((correct/total)*100);
+  let stars = 0;
+  if(pct>=90) stars=3; else if(pct>=70) stars=2; else if(pct>=50) stars=1;
+  const xpEarned = correct*10;
+
+  if(state.quiz.groupKey){
+    const prev = state.progress[state.quiz.groupKey] || {done:false, stars:0};
+    state.progress[state.quiz.groupKey] = { done: prev.done || pct>=50, stars: Math.max(prev.stars||0, stars) };
+    saveProgress();
+  }
+
+  document.getElementById('resultEmoji').textContent = pct>=90? '🏆' : pct>=70? '🎉' : pct>=50? '👏' : '💪';
+  document.getElementById('resultTitle').textContent = pct>=90? 'ممتاز! أداء رائع' : pct>=70? 'أحسنت!' : pct>=50? 'جيد، واصل التدريب' : 'حاول مرة أخرى';
+  document.getElementById('resultStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  document.getElementById('resultScore').textContent = correct+'/'+total;
+  document.getElementById('resultPercent').textContent = pct+'%';
+  document.getElementById('resultXP').textContent = xpEarned;
+  showView('result');
+}
+
+document.getElementById('retryBtn').onclick = ()=>{
+  startQuiz(state.quiz.pool, state.quiz.groupKey);
+};
+document.getElementById('homeBtn').onclick = ()=>{
+  buildPath();
+  showView('path');
+};
+
+(async function init(){
+  await loadState();
+  refreshTopbar();
+  buildPath();
+})();
+</script>
+</body>
+</html>
