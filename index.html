@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>خريطة قرية أستريكس وأوبيليكس التفاعلية</title>
     <style>
-        /* تصنيفات أساسية لتصفير الهوامش */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -22,20 +21,20 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* حاوية الخريطة الذكية - تحافظ على أبعاد 16:9 وتملأ الشاشة */
+        /* حاوية الخريطة مع صورتك المرفوعة */
         .map-container {
             position: relative;
             width: 100vw;
-            height: 56.25vw; /* نسبة الـ 16:9 الافتراضية */
+            height: 56.25vw;
             max-height: 100vh;
             max-width: 177.78vh; 
-            background-image: url('map.jpg'); /* استدعاء صورتك النظيفة */
+            background-image: url('map.jpg.png'); /* اسم صورتك الحالي على جيتهوب */
             background-size: cover;
             background-position: center;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
         }
 
-        /* الهيكل الموحد لكل مرحلة (اللافتة + الزر) */
+        /* تصميم عقد المراحل (الدوائر واللافتات) */
         .stage-node {
             position: absolute;
             transform: translate(-50%, -50%);
@@ -44,72 +43,99 @@
             align-items: center;
             z-index: 10;
             transition: transform 0.2s ease;
+            cursor: pointer;
         }
 
         .stage-node:hover {
             transform: translate(-50%, -50%) scale(1.1);
         }
 
-        /* تصميم لافتة الاسم ثلاثية الأبعاد الاحترافية */
         .name-tag {
             background: linear-gradient(135deg, #ffffff, #e6e6e6);
             color: #1a1a1a;
-            padding: 5px 12px;
+            padding: 4px 10px;
             border-radius: 6px;
             font-weight: bold;
-            font-size: 13px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 -2px 0 #b3b3b3;
+            font-size: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
             border: 1px solid #808080;
             white-space: nowrap;
-            text-align: center;
         }
 
-        /* تصميم زر الضغط التفاعلي الدائري */
         .stage-button {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             background-color: #ffcc00;
             border: 3px solid #fff;
             border-radius: 50%;
             margin-top: 4px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.6);
-            cursor: pointer;
             animation: pulse-orange 2s infinite;
         }
 
-        /* تأثير النبض للمراحل المفتوحة */
         @keyframes pulse-orange {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.7); }
             70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(255, 204, 0, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
         }
 
-        /* قفل المراحل المغلقة وتغيير ألوانها للرمادي */
-        .stage-node.locked {
-            cursor: not-allowed;
-        }
-        .stage-node.locked .name-tag {
-            background: linear-gradient(135deg, #555, #444);
-            color: #888;
-            border-color: #333;
-            box-shadow: none;
-        }
-        .stage-node.locked .stage-button {
-            background-color: #555;
-            border-color: #777;
-            animation: none;
-            cursor: not-allowed;
-        }
+        /* المراحل المغلقة */
+        .stage-node.locked { cursor: not-allowed; }
+        .stage-node.locked .name-tag { background: #555; color: #aaa; border-color: #333; }
+        .stage-node.locked .stage-button { background-color: #555; border-color: #777; animation: none; }
 
-        /* تمييز المرحلة النهائية للشيخ بلون سحري أخضر */
-        .stage-node.final .stage-button {
-            background-color: #2ed573;
-            animation: pulse-green 1.5s infinite;
-        }
+        /* المرحلة النهائية */
+        .stage-node.final .stage-button { background-color: #2ed573; animation: pulse-green 1.5s infinite; }
         @keyframes pulse-green {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7); }
             70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(46, 213, 115, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
+        }
+
+        /* 📦 تصميم نافذة الاختبار المنبثقة (Quiz Modal) */
+        .quiz-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .quiz-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-family: sans-serif;
+        }
+
+        .quiz-box h3 { margin-bottom: 15px; color: #333; }
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .option-btn:hover { background: #e0e0e0; }
+        .close-btn {
+            margin-top: 15px;
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -117,58 +143,121 @@
 
 <div class="map-container">
 
-    <div class="stage-node" style="top: 12%; left: 15%;" onclick="playStage('المقدمة: إيديفيكس 🐾', false)">
-        <div class="name-tag">إيديفيكس (Idefix)</div>
+    <!-- الدوائر موزعة الآن بدقة فوق بيوت خريطتك الجديدة -->
+    <div class="stage-node" id="stage-0" style="top: 14%; left: 23%;" onclick="openQuiz(0)">
+        <div class="name-tag">إيديفيكس (START)</div>
         <div class="stage-button"></div>
     </div>
 
-    <div class="stage-node" style="top: 30%; left: 24%;" onclick="playStage('المرحلة 1: أستريكس ⚔️', false)">
-        <div class="name-tag">أستريكس (Asterix)</div>
+    <div class="stage-node locked" id="stage-1" style="top: 13%; left: 44%;" onclick="openQuiz(1)">
+        <div class="name-tag">المرحلة 1: أستريكس</div>
         <div class="stage-button"></div>
     </div>
 
-    <div class="stage-node locked" style="top: 24%; left: 48%;" onclick="playStage('المرحلة 2: أوبيليكس 🪨', true)">
-        <div class="name-tag">أوبيليكس (Obelix)</div>
+    <div class="stage-node locked" id="stage-2" style="top: 25%; left: 66%;" onclick="openQuiz(2)">
+        <div class="name-tag">المرحلة 2: أوبيليكس</div>
         <div class="stage-button"></div>
     </div>
 
-    <div class="stage-node locked" style="top: 20%; left: 70%;" onclick="playStage('المرحلة 3: الزعيم 🛡️', true)">
-        <div class="name-tag">الزعيم (Vitalstatistix)</div>
+    <div class="stage-node locked" id="stage-3" style="top: 42%; left: 26%;" onclick="openQuiz(3)">
+        <div class="name-tag">المرحلة 3: الزعيم</div>
         <div class="stage-button"></div>
     </div>
 
-    <div class="stage-node locked" style="top: 38%; left: 86%;" onclick="playStage('المرحلة 4: الحداد 🔨', true)">
-        <div class="name-tag">الحداد (Fulliautomatix)</div>
+    <div class="stage-node locked" id="stage-4" style="top: 45%; left: 47%;" onclick="openQuiz(4)">
+        <div class="name-tag">المرحلة 4: الحداد</div>
         <div class="stage-button"></div>
     </div>
 
-    <div class="stage-node locked" style="top: 66%; left: 20%;" onclick="playStage('المرحلة 5: متجر الأسماك 🐟', true)">
-        <div class="name-tag">أونهيجينيكس (Unhygienix)</div>
+    <div class="stage-node locked" id="stage-5" style="top: 52%; left: 75%;" onclick="openQuiz(5)">
+        <div class="name-tag">المرحلة 5: بائع السمك</div>
         <div class="stage-button"></div>
     </div>
 
-    <div class="stage-node locked" style="top: 60%; left: 78%;" onclick="playStage('المرحلة 6: المغني 🎵', true)">
-        <div class="name-tag">كاكوفونيكس (Cacofonix)</div>
+    <div class="stage-node locked" id="stage-6" style="top: 70%; left: 29%;" onclick="openQuiz(6)">
+        <div class="name-tag">المرحلة 6: المغني</div>
         <div class="stage-button"></div>
     </div>
 
-    <div class="stage-node final locked" style="top: 83%; left: 50%;" onclick="playStage('المرحلة النهائية: الجرعة السحرية 🧪', true)">
-        <div class="name-tag">الشيخ غيتافيكس (Getafix)</div>
+    <div class="stage-node final locked" id="stage-7" style="top: 83%; left: 50%;" onclick="openQuiz(7)">
+        <div class="name-tag">النهاية: الشيخ غيتافيكس</div>
         <div class="stage-button"></div>
     </div>
 
 </div>
 
+<!-- 📦 واجهة الاختبار (المودال الشفاف) -->
+<div class="quiz-overlay" id="quizOverlay">
+    <div class="quiz-box">
+        <h3 id="questionText">السؤال هنا؟</h3>
+        <div id="optionsContainer"></div>
+        <button class="close-btn" onclick="closeQuiz()">إغلاق</button>
+    </div>
+</div>
+
 <script>
-    // الدالة التفاعلية عند الضغط على أي زر
-    function playStage(stageName, isLocked) {
-        if (isLocked) {
-            alert("🔒 هذه المرحلة مغلقة حالياً! يجب عليك الفوز بالمراحل السابقة أولاً.");
-        } else {
-            alert("🎮 مرحباً بك في " + stageName + "\nجاري الانتقال للعب...");
-            // هنا مستقبلاً يمكنك تغيير الرابط ليفتح لعبة فرعية:
-            // window.location.href = "stage1.html";
+    // نظام تتبع المراحل المفتوحة (المرحلة 0 مفتوحة تلقائياً)
+    let currentUnlockedStage = 0;
+
+    // بنك الأسئلة (يمكنك تغيير الأسئلة والخيارات لأي شيء تريده لاحقاً!)
+    const quizData = [
+        { q: "ما اسم الكلب الصغير الذكي في القرية؟", options: ["إيديفيكس", "أوبيليكس", "أستريكس"], correct: 0 },
+        { q: "ماذا يحمل أوبيليكس دائماً فوق ظهره؟", options: ["السمك", "صخور كبيرة (منهير)", "الذهب"], correct: 1 },
+        { q: "من هو زعيم القرية الذي يُحمل فوق الدرع؟", options: ["فيتالستاتستيكس", "كاكوفونيكس", "غيتافيكس"], correct: 0 },
+        { q: "ما هي مهنة فولياوتوماتيكس في القرية؟", options: ["خَباز", "صياد", "حداد"], correct: 2 },
+        { q: "ماذا يبيع أونهيجينيكس في متجره؟", options: ["السيوف", "الأسماك", "الخضار"], correct: 1 },
+        { q: "أين يقع بيت المغني كاكوفونيكس؟", options: ["فوق الشجرة", "تحت الأرض", "في البحر"], correct: 0 },
+        { q: "ماذا يصنع الشيخ غيتافيكس في قدره السحري؟", options: ["حساء الطماطم", "الجرعة السحرية للقوة", "عصير التفاح"], correct: 1 },
+        { q: "تهانينا! لقد أنهيت الاختبار بنجاح، هل أنت مستعد للمغامرة القادمة؟", options: ["نعم بكل تأكيد!", "أعد اللعب"], correct: 0 }
+    ];
+
+    // فتح نافذة الاختبار للمرحلة الضغط عليها
+    function openQuiz(stageId) {
+        if (stageId > currentUnlockedStage) {
+            alert("🔒 هذه المرحلة مغلقة! يجب عليك حل اختبار المرحلة السابقة أولاً.");
+            return;
         }
+
+        const data = quizData[stageId];
+        document.getElementById("questionText").innerText = data.q;
+        
+        const container = document.getElementById("optionsContainer");
+        container.innerHTML = ""; // تنظيف الخيارات القديمة
+
+        data.options.forEach((option, index) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = option;
+            btn.onclick = () => checkAnswer(stageId, index);
+            container.appendChild(btn);
+        });
+
+        document.getElementById("quizOverlay").style.display = "flex";
+    }
+
+    // التحقق من الإجابة
+    function checkAnswer(stageId, selectedIndex) {
+        const correctIndex = quizData[stageId].correct;
+        
+        if (selectedIndex === correctIndex) {
+            alert("🎉 إجابة صحيحة وممتازة!");
+            closeQuiz();
+            
+            // فتح المرحلة التالية إذا كانت الإجابة صحيحة ولم تفتح بعد
+            if (stageId === currentUnlockedStage && currentUnlockedStage < 7) {
+                currentUnlockedStage++;
+                const nextStage = document.getElementById("stage-" + currentUnlockedStage);
+                if (nextStage) {
+                    nextStage.classList.remove("locked");
+                }
+            }
+        } else {
+            alert("❌ إجابة خاطئة! حاول مرة أخرى بركّز جيداً.");
+        }
+    }
+
+    function closeQuiz() {
+        document.getElementById("quizOverlay").style.display = "none";
     }
 </script>
 </body>
