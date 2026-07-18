@@ -1,468 +1,3 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mehdi San | メヒサン</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Baloo+2:wght@500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --green:#58cc02; --green-dark:#3f9701;
-    --blue:#1cb0f6; --blue-dark:#0d95d6;
-    --red:#ff4b4b; --red-dark:#e63e3e;
-    --gold:#ffc800; --gold-dark:#e0ac00;
-    --ink:#eef1f8;
-    --gray:#2b3550; --gray-dark:#455072;
-    --bg:#0e1526; --bg2:#141d33;
-    --card:#182238; --card-dim:#101830;
-  }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(circle at 15% 0%, rgba(28,176,246,0.10), transparent 45%),
-      radial-gradient(circle at 90% 100%, rgba(255,75,75,0.08), transparent 45%),
-      var(--bg);
-    background-attachment:fixed;
-    font-family:'Baloo 2','Cairo','Zen Maru Gothic',sans-serif;
-    color:var(--ink);
-    min-height:100vh;
-    overflow-x:hidden;
-  }
-  button{ font-family:inherit; }
-
-  .topbar{
-    position:sticky; top:0; z-index:20;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:8px 16px;
-    background:var(--bg2);
-    border-bottom:2px solid var(--gray);
-  }
-  .logo{ display:flex; align-items:center; gap:8px; }
-  .logo-text{ display:flex; flex-direction:column; line-height:1.05; }
-  .logo-text b{ font-weight:800; font-size:16px; color:#fff; }
-  .logo-text span{ font-size:10px; color:var(--gold); font-weight:700; letter-spacing:1px; }
-  .stats{ display:flex; gap:8px; }
-  .stat-pill{
-    display:flex; align-items:center; gap:5px;
-    background:var(--card); border:2px solid var(--gray); border-radius:14px;
-    padding:4px 10px; font-weight:800; font-size:13px; color:var(--ink);
-  }
-  .stat-pill.gold{ color:var(--gold); border-color:#5a4a12; }
-  .stat-pill.red{ color:#ff8080; border-color:#5a1f1f; }
-
-  main{ max-width:640px; margin:0 auto; padding:18px 0 60px; }
-  main.padded{ padding-left:16px; padding-right:16px; }
-
-  .path-title{ text-align:center; margin:10px 16px 18px; }
-  .path-title h1{
-    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:22px; color:#fff; margin:0 0 4px;
-  }
-  .path-title p{ margin:0; font-size:13px; color:#8895b3; font-weight:600; }
-  .sound-check{ text-align:center; margin:0 16px 18px; }
-  .sound-status{ margin-top:8px; font-size:12px; font-weight:700; color:#8895b3; min-height:16px; }
-  .sound-status.ok{ color:#9df26a; }
-  .sound-status.bad{ color:#ff9a9a; }
-
-  /* ---- ADVENTURE MAP PATH ---- */
-  .map-wrap{
-    position:relative; width:100%; overflow:hidden;
-    border-radius:0;
-    background:
-      radial-gradient(ellipse at 20% 10%, #234d2e 0%, transparent 40%),
-      radial-gradient(ellipse at 80% 30%, #2c5a3a 0%, transparent 38%),
-      radial-gradient(ellipse at 30% 60%, #1f4d33 0%, transparent 42%),
-      radial-gradient(ellipse at 75% 80%, #285a3d 0%, transparent 40%),
-      linear-gradient(180deg, #1c3d28, #16302170%, #10241c);
-  }
-  .map-scenery{ position:absolute; font-size:46px; opacity:.85; filter:drop-shadow(0 3px 3px rgba(0,0,0,.4)); pointer-events:none; z-index:2; }
-  .map-svg{ position:absolute; inset:0; width:100%; height:100%; z-index:1; }
-
-  /* ---- SEASONS & PARTICLES ---- */
-  .season-zone{ position:absolute; left:0; right:0; pointer-events:none; z-index:2; overflow:hidden; }
-  .season-layer{ position:fixed; inset:0; z-index:15; pointer-events:none; overflow:hidden; }
-  .sp{ position:absolute; pointer-events:none; will-change:transform,opacity; }
-  .sp-sakura{ animation: fallDrift linear infinite; font-size:18px; }
-  .sp-leaf{ animation: fallDrift linear infinite; font-size:17px; }
-  .sp-snow{ animation: fallStraight linear infinite; font-size:14px; }
-  .sp-lantern{ animation: floatUp linear infinite; font-size:20px; }
-  .sp-firefly{ animation: fireflyDrift ease-in-out infinite; font-size:10px; }
-  .sp-fog{ position:absolute; background:radial-gradient(circle, rgba(220,230,240,.35), transparent 70%); border-radius:50%; filter:blur(6px); animation: fogDrift linear infinite; }
-  .sp-ember{ animation: emberRise linear infinite; font-size:12px; }
-  .sp-dragon{ position:absolute; font-size:70px; opacity:.16; filter:blur(1px) drop-shadow(0 0 12px rgba(255,80,20,.5)); animation: dragonSway 5s ease-in-out infinite; }
-  @keyframes fallDrift{ 0%{ transform:translate(0,-30px) rotate(0deg); opacity:0;} 10%{opacity:.9;} 100%{ transform:translate(30px, 340px) rotate(200deg); opacity:0;} }
-  @keyframes fallStraight{ 0%{ transform:translateY(-20px); opacity:0;} 10%{opacity:.9;} 100%{ transform:translateY(320px); opacity:0;} }
-  @keyframes floatUp{ 0%{ transform:translateY(20px); opacity:0;} 15%{opacity:.9;} 100%{ transform:translateY(-320px); opacity:0;} }
-  @keyframes fireflyDrift{ 0%,100%{ transform:translate(0,0); opacity:.2;} 50%{ transform:translate(14px,-18px); opacity:1;} }
-  @keyframes fogDrift{ 0%{ transform:translateX(-40px); opacity:.15;} 50%{ opacity:.4;} 100%{ transform:translateX(40px); opacity:.15;} }
-  @keyframes emberRise{ 0%{ transform:translateY(10px) translateX(0); opacity:0;} 20%{opacity:.9;} 100%{ transform:translateY(-260px) translateX(18px); opacity:0;} }
-  @keyframes dragonSway{ 0%,100%{ transform:translateX(-10px) scale(1);} 50%{ transform:translateX(10px) scale(1.05);} }
-
-  .flag-badge{ position:absolute; top:-10px; right:-10px; font-size:20px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
-
-  .samurai-marker{
-    position:absolute; transform:translate(-50%,-120%); font-size:38px; z-index:5;
-    filter:drop-shadow(0 6px 6px rgba(0,0,0,.5));
-    animation: samuraiBob 1.6s ease-in-out infinite;
-  }
-  @keyframes samuraiBob{ 0%,100%{ transform:translate(-50%,-120%) translateY(0);} 50%{ transform:translate(-50%,-120%) translateY(-8px);} }
-
-  /* ---- Hiragana keyboard ---- */
-  .kana-keyboard{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; max-width:360px; margin:0 auto; max-height:260px; overflow-y:auto; padding:4px; }
-  .kana-key{ background:var(--card); border:2px solid var(--gray); border-radius:10px; padding:9px 0; font-size:16px; font-weight:800; color:#fff; cursor:pointer; font-family:'Zen Maru Gothic',sans-serif; }
-  .kana-key:active{ transform:translateY(2px); }
-  .kana-answer-box{ min-height:44px; border:2px dashed var(--gold); border-radius:12px; padding:8px 12px; font-size:26px; font-family:'Zen Maru Gothic',sans-serif; color:#fff; text-align:center; margin-bottom:10px; letter-spacing:2px; }
-  .kana-controls{ display:flex; gap:10px; justify-content:center; margin:10px 0; }
-  .map-node{
-    position:absolute; transform:translate(-50%,-50%);
-    display:flex; flex-direction:column; align-items:center; z-index:4;
-  }
-  .chest-btn{
-    width:78px; height:78px; border-radius:22px;
-    display:flex; align-items:center; justify-content:center; font-size:38px;
-    cursor:pointer; border:none; position:relative;
-    box-shadow:0 8px 0 var(--shadow-c, #7a5417), 0 10px 16px rgba(0,0,0,.4);
-    background:var(--main-c, #d99a2e);
-    transition:transform .08s ease;
-  }
-  .chest-btn:active{ transform:translateY(6px); box-shadow:0 2px 0 var(--shadow-c,#7a5417); }
-  .chest-btn.locked{ background:#5b6376; --shadow-c:#3b4152; cursor:default; filter:grayscale(.4); }
-  .chest-btn .lock-badge{ position:absolute; top:-6px; left:-6px; font-size:20px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
-  .map-node .stars{
-    margin-top:6px;
-    font-size:22px;
-    text-shadow:0 0 6px rgba(255,200,0,.9), 0 2px 2px rgba(0,0,0,.5);
-    background:rgba(15,20,35,.55); border-radius:12px; padding:2px 8px;
-  }
-  .map-node-label{
-    margin-top:4px; font-weight:900; font-size:16px; color:#fff; font-family:'Zen Maru Gothic',sans-serif;
-    background:rgba(15,20,35,.6); padding:3px 12px; border-radius:10px; white-space:nowrap;
-  }
-  .map-node-sub{ font-size:10px; color:#dfe6f5; font-weight:700; margin-top:2px; }
-  .map-quiz-btn{
-    margin-top:4px; font-size:11px; font-weight:800; color:#0d2436;
-    background:#eaf8ff; border:2px solid #164a66; border-radius:10px;
-    padding:3px 9px; cursor:pointer;
-  }
-
-  .srs-card{
-    position:relative; overflow:hidden; margin:0 16px 20px; padding:22px 18px;
-    border-radius:22px; text-align:center;
-    background:radial-gradient(ellipse at 50% -20%, rgba(120,140,255,.25), transparent 60%), linear-gradient(160deg,#141a30,#0b0f1e);
-    border:2px solid #2c3560; box-shadow:0 10px 30px rgba(0,0,20,.5), inset 0 0 40px rgba(90,110,220,.08);
-  }
-  .srs-glow{ position:absolute; top:-60px; right:-40px; width:160px; height:160px; border-radius:50%;
-    background:radial-gradient(circle, rgba(255,220,140,.35), transparent 70%); filter:blur(6px); }
-  .srs-moon{ font-size:34px; filter:drop-shadow(0 0 14px rgba(255,230,160,.7)); margin-bottom:4px; }
-  .srs-info h3{ margin:2px 0 2px; font-family:'Zen Maru Gothic',sans-serif; font-size:19px; color:#fff; }
-  .srs-sub{ margin:0 0 8px; font-size:11px; color:#8ea0e0; font-weight:700; letter-spacing:.3px; }
-  .srs-count{ margin:0 0 14px; font-size:14px; color:var(--gold); font-weight:800; }
-  .full-test-card{
-    margin:36px 16px 0; background:linear-gradient(135deg,#2a230c,#3a2f0d);
-    border:3px solid var(--gold); border-radius:20px; padding:18px; text-align:center;
-  }  .full-test-card .icon-lg{ font-size:50px; }
-  .full-test-card h3{ margin:6px 0; font-family:'Baloo 2',sans-serif; font-size:17px; color:var(--gold); }
-  .full-test-card p{ margin:0 0 12px; font-size:13px; color:#c9b578; }
-
-  .btn{
-    display:inline-block; border:none; border-radius:16px; padding:13px 20px;
-    font-weight:800; font-size:15px; cursor:pointer; color:#fff; box-shadow:0 5px 0 var(--sc);
-    transition:transform .08s ease;
-  }
-  .btn:active{ transform:translateY(4px); box-shadow:0 1px 0 var(--sc); }
-  .btn-green{ background:var(--green); --sc:var(--green-dark); }
-  .btn-blue{ background:var(--blue); --sc:var(--blue-dark); }
-  .btn-gold{ background:var(--gold); --sc:var(--gold-dark); color:#3a2c00; }
-  .btn-gray{ background:var(--card); color:var(--ink); border:2px solid var(--gray); box-shadow:0 5px 0 var(--gray); }
-  .btn:disabled{ opacity:.5; cursor:default; }
-
-  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; padding:0 16px; }
-  .back-btn{ background:var(--card); border:2px solid var(--gray); border-radius:12px; width:38px; height:38px; font-size:16px; cursor:pointer; color:#fff; }
-  .lesson-head{ font-family:'Baloo 2',sans-serif; font-weight:800; font-size:18px; color:#fff; }
-
-  .mode-toggle{ display:flex; gap:8px; margin:0 16px 16px; flex-wrap:wrap; }
-  .mode-btn{
-    font-weight:800; font-size:12px; padding:8px 14px; border-radius:20px;
-    border:2px solid var(--gray); background:var(--card); color:#8895b3; cursor:pointer;
-  }
-  .mode-btn.active{ background:var(--blue); border-color:var(--blue-dark); color:#fff; }
-
-  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:16px; padding:0 16px; }
-  .card{ perspective:1000px; height:280px; cursor:pointer; }
-  .card-inner{
-    position:relative; width:100%; height:100%;
-    transform-style:preserve-3d; transition:transform .5s cubic-bezier(.2,.9,.3,1); border-radius:20px;
-  }
-  .card.flipped .card-inner{ transform:rotateY(180deg); }
-  .face{
-    position:absolute; inset:0; border-radius:20px; backface-visibility:hidden;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:14px; border:2px solid var(--gray); background:var(--card);
-  }
-  .face-back{ transform:rotateY(180deg); background:var(--card-dim); border-color:var(--gold-dark); }
-  .emoji{ font-size:52px; margin-bottom:8px; display:inline-block; }
-  .emoji.talking, .quiz-main.talking{ animation: talkWiggle .6s ease; }
-  @keyframes talkWiggle{
-    0%{ transform:scale(1) rotate(0deg); }
-    20%{ transform:scale(1.18) rotate(-6deg); }
-    40%{ transform:scale(0.92) rotate(5deg); }
-    60%{ transform:scale(1.14) rotate(-4deg); }
-    80%{ transform:scale(0.97) rotate(3deg); }
-    100%{ transform:scale(1) rotate(0deg); }
-  }
-  .kana{ font-family:'Zen Maru Gothic',sans-serif; font-size:40px; font-weight:900; color:#fff; line-height:1.2; text-align:center; letter-spacing:1px; word-break:break-word; }
-  .romaji-front{ font-size:17px; color:var(--gold); margin-top:6px; font-weight:800; letter-spacing:.5px; }
-  .kana-echo{ font-family:'Zen Maru Gothic',sans-serif; font-size:28px; color:#fff; margin-bottom:4px; font-weight:800; text-align:center; }
-  .romaji-mid{ font-size:16px; color:var(--gold); font-weight:800; margin-bottom:6px; }
-  .en-line{ font-size:16px; color:#9fb8ff; font-weight:700; }
-  .meaning{ font-size:21px; font-weight:900; text-align:center; color:#fff; margin-top:4px; font-family:'Cairo',sans-serif; }
-  .difficulty{ font-size:14px; margin-top:8px; }
-  .speak-btn{
-    position:absolute; top:10px; left:10px; background:var(--blue); color:#fff; border:none;
-    border-radius:50%; width:32px; height:32px; font-size:15px; cursor:pointer; box-shadow:0 3px 0 var(--blue-dark); z-index:5;
-  }
-  .star-btn{ position:absolute; top:10px; right:10px; background:none; border:none; font-size:19px; cursor:pointer; opacity:.4; z-index:5; }
-  .star-btn.on{ opacity:1; }
-
-  .study{ display:none; flex-direction:column; align-items:center; gap:16px; padding:0 16px; }
-  .study.active{ display:flex; }
-  .study-card{ width:min(340px,92vw); height:300px; }
-  .study-nav{ display:flex; align-items:center; gap:18px; }
-  .nav-btn{ background:var(--blue); color:#fff; border:none; width:44px; height:44px; border-radius:50%; font-size:18px; cursor:pointer; box-shadow:0 4px 0 var(--blue-dark); }
-  .nav-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--blue-dark); }
-  .study-count{ font-weight:800; font-size:14px; color:#fff; }
-
-  .quiz-topbar{ display:flex; align-items:center; gap:12px; margin-bottom:20px; padding:0 16px; }
-  .quiz-progress{ flex:1; height:14px; background:var(--gray); border-radius:8px; overflow:hidden; }
-  .quiz-progress-fill{ height:100%; background:var(--green); width:0%; transition:width .3s; }
-  .quiz-hearts{ font-size:15px; font-weight:800; color:#ff8080; white-space:nowrap; }
-  .quiz-x{ background:none; border:none; font-size:20px; color:#7f8bab; cursor:pointer; }
-
-  .quiz-question-box{ background:var(--card); border:2px solid var(--gray); border-radius:20px; padding:28px 18px; text-align:center; margin:0 16px 22px; }
-  .quiz-prompt{ font-size:13px; font-weight:700; color:#8895b3; margin-bottom:10px; }
-  .quiz-main{ font-family:'Zen Maru Gothic',sans-serif; font-size:46px; font-weight:900; color:#fff; text-align:center; letter-spacing:1px; word-break:break-word; }
-  .quiz-sub{ font-size:16px; color:#9fb0d4; margin-top:8px; font-weight:700; }
-  .quiz-speak{ margin-top:14px; background:var(--blue); color:#fff; border:none; border-radius:50%; width:46px; height:46px; font-size:19px; cursor:pointer; box-shadow:0 4px 0 var(--blue-dark); }
-
-  .options{ display:flex; flex-direction:column; gap:12px; padding:0 16px; }
-  .opt-btn{
-    background:var(--card); border:2px solid var(--gray); border-radius:14px; padding:16px;
-    font-family:'Zen Maru Gothic',sans-serif; font-size:24px; font-weight:800; cursor:pointer; text-align:center; box-shadow:0 4px 0 var(--gray); color:#fff;
-  }
-  .opt-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--gray); }
-  .opt-btn.correct{ background:#173a05; border-color:var(--green); box-shadow:0 4px 0 var(--green-dark); color:#9df26a; }
-  .opt-btn.wrong{ background:#3a1010; border-color:var(--red); box-shadow:0 4px 0 var(--red-dark); color:#ff9a9a; }
-  .opt-btn:disabled{ cursor:default; }
-
-  .type-wrap{ display:flex; flex-direction:column; gap:12px; align-items:center; }
-  .type-input{
-    width:100%; max-width:320px; padding:14px 16px; border-radius:14px; border:2px solid var(--gray);
-    background:var(--card); color:#fff; font-size:18px; text-align:center; font-weight:700;
-  }
-  .type-input:focus{ outline:none; border-color:var(--blue); }
-  .type-hint{ font-size:11px; color:#7f8bab; }
-
-  .feedback-bar{
-    position:fixed; bottom:0; left:0; right:0; z-index:30;
-    padding:14px 16px; display:none; align-items:center; justify-content:space-between; gap:12px;
-    border-top:3px solid;
-  }
-  .feedback-bar.show{ display:flex; }
-  .feedback-bar.ok{ background:#0f2c05; border-color:var(--green); }
-  .feedback-bar.bad{ background:#340c0c; border-color:var(--red); }
-  .feedback-left{ display:flex; align-items:center; gap:10px; }
-  .feedback-mascot{ width:46px; height:46px; flex-shrink:0; }
-  .feedback-text{ font-weight:900; font-size:16px; }
-  .feedback-bar.ok .feedback-text{ color:#9df26a; }
-  .feedback-bar.bad .feedback-text{ color:#ff9a9a; }
-  .feedback-sub{ font-size:12px; font-weight:700; color:#c3ccdf; }
-
-  .result{ text-align:center; padding:14px 10px; }
-  .result-mascot{ width:110px; height:110px; margin:0 auto; }
-  .result h2{ font-family:'Baloo 2',sans-serif; font-size:22px; margin:8px 0; color:#fff; }
-  .result-msg{ font-size:14px; color:var(--gold); font-weight:700; margin-bottom:6px; }
-  .result-msg-en{ font-size:12px; color:#8895b3; margin-bottom:10px; }
-  .result-stars{ font-size:38px; margin:10px 0; text-shadow:0 0 10px rgba(255,200,0,.7); }
-  .result-stats{ display:flex; justify-content:center; gap:14px; margin:18px 0 26px; flex-wrap:wrap; }
-  .rstat{ background:var(--card); border:2px solid var(--gray); border-radius:14px; padding:10px 18px; min-width:90px; }
-  .rstat b{ display:block; font-size:20px; color:#fff; }
-  .rstat span{ font-size:11px; color:#8895b3; font-weight:700; }
-  .result-actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-
-  .champion{ text-align:center; padding:10px; position:relative; }
-  .trophy-wrap{ position:relative; width:180px; height:180px; margin:0 auto 6px; display:flex; align-items:center; justify-content:center; }
-  .trophy-cup{ font-size:130px; filter:drop-shadow(0 8px 10px rgba(0,0,0,.5)); }
-  .trophy-fox{ position:absolute; top:-6px; left:50%; transform:translateX(-50%); font-size:56px; filter:drop-shadow(0 4px 4px rgba(0,0,0,.5)); }
-  .champion h2{ font-family:'Zen Maru Gothic',sans-serif; font-size:30px; color:var(--gold); margin:6px 0 2px; }
-  .champion .romaji-big{ font-size:16px; color:#fff; font-weight:800; margin-bottom:2px; }
-  .champion .arabic-big{ font-size:20px; color:#fff; font-weight:900; margin-bottom:10px; font-family:'Cairo',sans-serif; }
-  .champion-msg{ background:var(--card); border:2px solid var(--gold); border-radius:16px; padding:16px; margin:14px auto; max-width:440px; }
-  .champion-msg p{ margin:4px 0; font-weight:700; }
-  .champion-msg .jp{ color:#fff; font-size:16px; font-family:'Zen Maru Gothic',sans-serif; }
-  .champion-msg .ar{ color:var(--gold); font-size:16px; font-family:'Cairo',sans-serif; }
-  .champion-msg .en{ color:#c3ccdf; font-size:12px; }
-
-  /* fireworks */
-  .fw-layer{ position:fixed; inset:0; pointer-events:none; z-index:60; overflow:hidden; }
-  .fw-particle{ position:absolute; font-size:22px; opacity:0; will-change:transform,opacity; }
-
-  footer{ text-align:center; padding:20px; font-size:12px; color:#5c6889; }
-  .view{ display:none; }
-  .view.active{ display:block; }
-  @media (prefers-reduced-motion: reduce){ .card-inner{ transition:none; } .samurai-marker{ animation:none; } .sp, .sp-dragon{ animation:none!important; opacity:0!important; } }
-</style>
-</head>
-<body>
-
-<div class="topbar">
-  <div class="logo" id="logoWrap"></div>
-  <div class="stats">
-    <div class="stat-pill gold">⭐ <span id="xpVal">0</span> XP</div>
-    <div class="stat-pill" style="color:#ff9d4d; border-color:#5a3612;">🔥 <span id="streakVal">0</span></div>
-    <div class="stat-pill red">❤️ <span id="heartsVal">6</span></div>
-  </div>
-</div>
-
-<main>
-  <div class="view active" id="view-path">
-    <div class="path-title">
-      <h1>Mehdi San 🥷 侍の道 مسار الساموراي</h1>
-      <p>سافر عبر القلاع والقصور اليابانية بحثًا عن الكنوز! Travel through Japanese castles to find treasures!</p>
-    </div>
-    <div class="srs-card" id="srsCard">
-      <div class="srs-glow"></div>
-      <div class="srs-moon">🌙</div>
-      <div class="srs-info">
-        <h3>مراجعتك الذكية اليوم</h3>
-        <p class="srs-sub">Smart Review · نظام التكرار المتباعد (SRS)</p>
-        <p class="srs-count"><span id="srsDueCount">0</span> كلمة بحاجة للمراجعة الآن</p>
-      </div>
-      <button class="btn btn-gold" id="srsStartBtn">🌙 ابدأ المراجعة Start</button>
-    </div>
-    <div class="map-wrap" id="mapWrap">
-      <svg class="map-svg" id="mapSvg" viewBox="0 0 100 980" preserveAspectRatio="none"></svg>
-    </div>
-    <div class="full-test-card">
-      <div class="icon-lg" id="trophyIconWrap">🐉🏆</div>
-      <h3>تحدي التنين النهائي / 最終試験</h3>
-      <p>اختبار واحد يجمع كل الكلمات (٧٣ كلمة) من كل المراحل — جو ليلي مع ظل التنين!</p>
-      <button class="btn btn-gold" id="fullTestBtn">はじめる Start / ابدأ التحدي</button>
-    </div>
-  </div>
-
-  <div class="view" id="view-lesson">
-    <div class="back-row">
-      <button class="back-btn" id="lessonBack">→</button>
-      <div class="lesson-head" id="lessonTitle">—</div>
-    </div>
-    <div class="mode-toggle">
-      <button class="mode-btn active" id="btnGrid">🀄 الشبكة</button>
-      <button class="mode-btn" id="btnStudy">📖 مراجعة</button>
-      <button class="mode-btn" id="btnQuizFromLesson">📝 اختبار المرحلة</button>
-    </div>
-    <div class="grid" id="grid"></div>
-    <div class="study" id="studyView">
-      <div class="card study-card" id="studyCard">
-        <div class="card-inner">
-          <div class="face face-front">
-            <button class="speak-btn" id="sSpeak">🔊</button>
-            <div class="emoji" id="sEmoji">🌸</div>
-            <div class="kana" id="sKana">—</div>
-            <div class="romaji-front" id="sRomajiFront">—</div>
-            <div class="difficulty" id="sDiff">⭐</div>
-          </div>
-          <div class="face face-back">
-            <div class="kana-echo" id="sKanaEcho">—</div>
-            <div class="romaji-mid" id="sRomajiMid">—</div>
-            <div class="en-line" id="sEn">—</div>
-            <div class="meaning" id="sMeaning">—</div>
-          </div>
-        </div>
-      </div>
-      <div class="study-nav">
-        <button class="nav-btn" id="prevBtn">›</button>
-        <span class="study-count" id="studyCount">1 / 1</span>
-        <button class="nav-btn" id="nextBtn">‹</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="view" id="view-quiz">
-    <div class="quiz-topbar">
-      <button class="quiz-x" id="quizExit">✕</button>
-      <div class="quiz-progress"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
-      <div class="quiz-hearts">❤️ <span id="quizHearts">6</span></div>
-    </div>
-    <div class="quiz-question-box">
-      <div class="quiz-prompt" id="quizPrompt">اختر المعنى الصحيح</div>
-      <div class="quiz-main" id="quizMain">—</div>
-      <div class="quiz-sub" id="quizSub"></div>
-      <button class="quiz-speak" id="quizSpeakBtn">🔊</button>
-    </div>
-    <div class="options" id="quizOptions"></div>
-  </div>
-
-  <div class="view" id="view-result">
-    <div class="result">
-      <div class="result-mascot" id="resultMascotWrap"></div>
-      <h2 id="resultTitle">أحسنت!</h2>
-      <div class="result-msg" id="resultMsgAr"></div>
-      <div class="result-msg-en" id="resultMsgEn"></div>
-      <div class="result-stars" id="resultStars">⭐⭐⭐</div>
-      <div class="result-stats">
-        <div class="rstat"><b id="resultScore">0/0</b><span>الإجابات الصحيحة</span></div>
-        <div class="rstat"><b id="resultPercent">0%</b><span>النسبة</span></div>
-        <div class="rstat"><b id="resultXP">0</b><span>XP مكتسبة</span></div>
-      </div>
-      <div class="result-actions">
-        <button class="btn btn-green" id="retryBtn">🔁 やり直す Retry / إعادة</button>
-        <button class="btn btn-gray" id="homeBtn">🏠 ホーム Home / الرئيسية</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="view" id="view-champion">
-    <div class="champion">
-      <div class="trophy-wrap">
-        <div class="trophy-cup">🏆</div>
-        <div class="trophy-fox">🦊</div>
-      </div>
-      <h2>おめでとうございます</h2>
-      <div class="arabic-big">🎉 مبروك يا سيد مهدي سان 🎉</div>
-      <div class="champion-msg">
-        <p class="jp">よくできました！ミッション成功です！</p>
-        <p class="en">Well done! Mission complete!</p>
-        <p class="ar">أنت الآن أنهيت المهمة بنجاح! أنت مستعد للاختبار يا سيد مهدي سان!</p>
-      </div>
-      <div class="result-stats">
-        <div class="rstat"><b id="champScore">0/0</b><span>النتيجة النهائية</span></div>
-        <div class="rstat"><b id="champPercent">0%</b><span>النسبة</span></div>
-      </div>
-      <div class="result-actions">
-        <button class="btn btn-gray" id="champHomeBtn">🏠 ホーム Home / الرئيسية</button>
-      </div>
-    </div>
-  </div>
-</main>
-
-<div class="feedback-bar" id="feedbackBar">
-  <div class="feedback-left">
-    <div class="feedback-mascot" id="feedbackMascotWrap"></div>
-    <div>
-      <div class="feedback-text" id="feedbackText">صحيح!</div>
-      <div class="feedback-sub" id="feedbackSub"></div>
-    </div>
-  </div>
-  <button class="btn btn-green" id="continueBtn">つづく Continue / متابعة</button>
-</div>
-
-<div class="fw-layer" id="fwLayer"></div>
-<div class="season-layer" id="seasonLayer"></div>
-
-<footer>🎋 اضغط على البطاقة لسماع الكلمة · افتح صندوق كل مرحلة بإنهاء اختبارها · 🎋</footer>
-
-<script>
 /* ================= MASCOT & LOGO (CSS + emoji) ================= */
 function fennecSVG(mood, sizePx){
   sizePx = sizePx || 64;
@@ -618,6 +153,28 @@ function spawnFireworks(intensity){
 }
 
 /* ================= DATA ================= */
+
+const KANA_TABLE = [
+  ["あ", "い", "う", "え", "お"], // صف A
+  ["か", "き", "く", "け", "こ"], // صف K
+  ["さ", "し", "す", "せ", "そ"], // صف S
+  ["た", "ち", "つ", "て", "と"], // صف T
+  ["な", "に", "ぬ", "ね", "の"], // صف N
+  ["は", "ひ", "ふ", "へ", "ほ"], // صف H
+  ["ま", "み", "む", "め", "も"], // صف M
+  ["や", "ゆ", "よ"],             // صف Y (3 أحرف فقط)
+  ["ら", "り", "る", "れ", "ろ"], // صف R
+  ["わ", "を", "ん"]              // صف W/N
+];
+
+const DAKUTEN_TABLE = [
+  ["が", "ぎ", "ぐ", "げ", "ご"],
+  ["ざ", "じ", "ず", "ぜ", "ぞ"],
+  ["だ", "ぢ", "づ", "で", "ど"],
+  ["ば", "び", "ぶ", "べ", "ぼ"],
+  ["ぱ", "ぴ", "ぷ", "ぺ", "ぽ"]
+];
+
 const DATA = {
   seion: { name:"الأصوات الأساسية", icon:"🗻", color:"#58cc02", shadow:"#3f9701", words:[
     {k:"あさ", r:"a sa", en:"morning", m:"صباح", e:"🌅", d:1},
@@ -706,27 +263,18 @@ const DATA = {
   ]}
 };
 
-const KANA_TABLE = [
-  ["あ", "い", "う", "え", "お"], // صف A
-  ["か", "き", "く", "け", "こ"], // صف K
-  ["さ", "し", "す", "せ", "そ"], // صف S
-  ["た", "ち", "つ", "て", "と"], // صف T
-  ["な", "に", "ぬ", "ね", "の"], // صف N
-  ["は", "ひ", "ふ", "へ", "ほ"], // صف H
-  ["ま", "み", "む", "め", "も"], // صف M
-  ["や", "ゆ", "よ"],             // صف Y (3 أحرف فقط)
-  ["ら", "り", "る", "れ", "ろ"], // صف R
-  ["わ", "を", "ん"]              // صف W/N
+const GROUP_ORDER = ["seion","hane","choon","dakuten","sokuon","youon"];
+const KANA_KEYS = [
+  "あ","い","う","え","お","か","き","く","け","こ","さ","し","す","せ","そ",
+  "た","ち","つ","て","と","な","に","ぬ","ね","の","は","ひ","ふ","へ","ほ",
+  "ま","み","む","め","も","や","ゆ","よ","ら","り","る","れ","ろ","わ","を","ん",
+  "が","ぎ","ぐ","げ","ご","ざ","じ","ず","ぜ","ぞ","だ","ぢ","づ","で","ど",
+  "ば","び","ぶ","べ","ぼ","ぱ","ぴ","ぷ","ぺ","ぽ","ゃ","ゅ","ょ","っ","ー"
 ];
-
-// يمكنك إضافة الكانا المساعدة (Dakuten) أو الأشكال الخاصة بنفس الطريقة إذا أردت
-const DAKUTEN_TABLE = [
-  ["が", "ぎ", "ぐ", "げ", "ご"],
-  ["ざ", "じ", "ず", "ぜ", "ぞ"],
-  ["だ", "ぢ", "づ", "で", "ど"],
-  ["ば", "び", "ぶ", "べ", "ぼ"],
-  ["ぱ", "ぴ", "ぷ", "ぺ", "ぽ"]
-
+/* Simple hiragana-only stage titles */
+const KANA_NAME = {
+  seion:"きほん", hane:"「ん」", choon:"ながいおん",
+  dakuten:"にごるおん", sokuon:"「っ」", youon:"や ゆ よ"
 };
 /* Different castle-type icon + colour tint per stage so chests don't look identical */
 const CASTLE_ICON = { seion:"🏯", hane:"⛩️", choon:"🏯", dakuten:"⛩️", sokuon:"🏯", youon:"⛩️" };
@@ -1331,6 +879,3 @@ document.getElementById('champHomeBtn').onclick = ()=>{ buildPath(); showView('p
   refreshTopbar();
   buildPath();
 })();
-</script>
-</body>
-</html>
