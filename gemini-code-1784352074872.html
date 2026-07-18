@@ -1,170 +1,29 @@
-/* ================= MASCOT & LOGO (CSS + emoji) ================= */
-function fennecSVG(mood, sizePx){
-  sizePx = sizePx || 64;
-  const emojiPx = Math.round(sizePx*0.56);
-  const badgePx = Math.round(sizePx*0.32);
-  const badge = mood==='happy' ? '😄' : mood==='sad' ? '😢' : '';
-  return `
-  <div style="position:relative; width:${sizePx}px; height:${sizePx}px; display:flex; align-items:center; justify-content:center;">
-    <div style="position:absolute; inset:6%; border-radius:50%; background:radial-gradient(circle at 35% 30%, #ffe9b0, #e0a83a 70%); box-shadow:0 4px 10px rgba(0,0,0,.35);"></div>
-    <div style="position:relative; font-size:${emojiPx}px; line-height:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));">🦊</div>
-    ${badge ? `<div style="position:absolute; bottom:0%; right:2%; font-size:${badgePx}px; line-height:1; filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));">${badge}</div>` : ''}
-  </div>`;
-}
-function algeriaBadgeSVG(withFennec, sizePx){
-  sizePx = sizePx || 100;
-  const starPx = Math.round(sizePx*(withFennec?0.16:0.20));
-  const foxPx = Math.round(sizePx*0.46);
-  return `
-  <div style="position:relative; width:${sizePx}px; height:${sizePx}px; border-radius:50%; overflow:hidden; border:3px solid #ffc800; box-shadow:0 3px 8px rgba(0,0,0,.4);">
-    <div style="position:absolute; inset:0 50% 0 0; background:#006233;"></div>
-    <div style="position:absolute; inset:0 0 0 50%; background:#ffffff;"></div>
-    <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:34%; height:34%; border-radius:50%; background:#d21034;"></div>
-    <div style="position:absolute; left:56%; top:50%; transform:translate(-50%,-50%); width:27%; height:27%; border-radius:50%; background:#ffffff;"></div>
-    <div style="position:absolute; left:57%; top:50%; transform:translate(-50%,-50%); color:#d21034; font-size:${starPx}px; line-height:1;">★</div>
-    ${withFennec ? `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;"><div style="font-size:${foxPx}px; line-height:1; filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));">🦊</div></div>` : ''}
-  </div>`;
-}
-function renderInto(id, html){
-  const el = document.getElementById(id);
-  if(el) el.innerHTML = html;
-}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mehdi San | メヒサン</title>
+<!-- ... (كل الـ <style> السابقة تبقى كما هي) ... -->
+</head>
+<body>
+<!-- ... (كل الـ HTML السابق يبقى كما هو) ... -->
 
-/* ================= AUDIO ================= */
-let audioCtx = null;
-function getCtx(){
-  if(!audioCtx){
-    try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audioCtx=null; }
-  }
-  if(audioCtx && audioCtx.state === 'suspended'){ audioCtx.resume().catch(()=>{}); }
-  return audioCtx;
-}
-document.addEventListener('pointerdown', function(){
-  const ctx = getCtx();
-  if(ctx && ctx.state === 'suspended'){ ctx.resume().catch(()=>{}); }
-}, { passive:true });
+<script>
+// ... (كل الكود السابق حتى دالة renderQuestion) ...
 
-function playTone(freq, duration, type, delay, vol){
-  try{
-    const ctx = getCtx(); if(!ctx) return;
-    const t0 = ctx.currentTime + (delay||0);
-    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-    osc.type = type||'sine'; osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(vol||0.18, t0+0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0+duration);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t0); osc.stop(t0+duration+0.03);
-  }catch(e){}
-}
-function playNoiseBurst(delay, duration, vol){
-  try{
-    const ctx = getCtx(); if(!ctx) return;
-    const t0 = ctx.currentTime + (delay||0);
-    const bufSize = Math.floor(ctx.sampleRate * duration);
-    const buffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for(let i=0;i<bufSize;i++){ data[i] = (Math.random()*2-1) * (1 - i/bufSize); }
-    const src = ctx.createBufferSource(); src.buffer = buffer;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(vol||0.25, t0);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0+duration);
-    const filter = ctx.createBiquadFilter(); filter.type='bandpass'; filter.frequency.value=1800;
-    src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-    src.start(t0); src.stop(t0+duration+0.02);
-  }catch(e){}
-}
-/* ~3 second cheerful success chime */
-function playCorrectSound(){
-  const notes = [523,659,784,1046,784,1046,1318];
-  const times = [0,0.18,0.36,0.55,0.85,1.05,1.35];
-  notes.forEach((f,i)=> playTone(f, i===notes.length-1?1.5:0.28, 'triangle', times[i], 0.16));
-  playTone(1568, 1.6, 'sine', 1.35, 0.12);
-}
-/* distinct wrong-answer buzz */
-function playWrongSound(){
-  playTone(196,0.22,'sawtooth',0,0.2);
-  playTone(147,0.32,'sawtooth',0.16,0.2);
-}
-function playFanfare(){ [523,659,784,1046].forEach((f,i)=> playTone(f,0.22,'triangle', i*0.13)); }
-function playFireworkSound(){
-  for(let i=0;i<5;i++){
-    const d = i*0.4 + Math.random()*0.15;
-    playNoiseBurst(d, 0.35, 0.28);
-    playTone(80+Math.random()*40, 0.4, 'sine', d, 0.22);
-  }
-}
-function playCongratsVoice(){
-  try{
-    if(!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance('おめでとうございます！ミッション成功です！');
-    u.lang = 'ja-JP'; u.rate = 0.85; u.pitch = 1.1;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
-}
-function speak(text, el){
-  if(el){
-    el.classList.remove('talking');
-    void el.offsetWidth;
-    el.classList.add('talking');
-    setTimeout(()=> el.classList.remove('talking'), 650);
-  }
-  try{
-    if(!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ja-JP'; u.rate = 0.8;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
-}
-
-/* ================= FIREWORKS ================= */
-function spawnFireworks(intensity){
-  const layer = document.getElementById('fwLayer');
-  const bursts = intensity==='big' ? 7 : 4;
-  const emojis = ['🎆','✨','🎇','⭐','💥'];
-  for(let b=0; b<bursts; b++){
-    const cx = 15 + Math.random()*70;
-    const cy = 15 + Math.random()*50;
-    const delay = b * 220;
-    setTimeout(()=>{
-      const particleCount = 10;
-      for(let p=0; p<particleCount; p++){
-        const el = document.createElement('div');
-        el.className = 'fw-particle';
-        el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-        el.style.left = cx+'vw';
-        el.style.top = cy+'vh';
-        layer.appendChild(el);
-        const angle = (Math.PI*2) * (p/particleCount) + Math.random()*0.4;
-        const dist = 60 + Math.random()*70;
-        const dx = Math.cos(angle)*dist;
-        const dy = Math.sin(angle)*dist;
-        el.animate([
-          { transform:'translate(0,0) scale(0.4)', opacity:1 },
-          { transform:`translate(${dx}px, ${dy}px) scale(1.3)`, opacity:1, offset:0.6 },
-          { transform:`translate(${dx*1.3}px, ${dy*1.3+40}px) scale(0.9)`, opacity:0 }
-        ], { duration: 1300+Math.random()*400, easing:'cubic-bezier(.2,.7,.3,1)' });
-        setTimeout(()=> el.remove(), 1800);
-      }
-    }, delay);
-  }
-}
-
-/* ================= DATA ================= */
-
+/* ================= IMPROVED KANA KEYBOARD ================= */
 const KANA_TABLE = [
-  ["あ", "い", "う", "え", "お"], // صف A
-  ["か", "き", "く", "け", "こ"], // صف K
-  ["さ", "し", "す", "せ", "そ"], // صف S
-  ["た", "ち", "つ", "て", "と"], // صف T
-  ["な", "に", "ぬ", "ね", "の"], // صف N
-  ["は", "ひ", "ふ", "へ", "ほ"], // صف H
-  ["ま", "み", "む", "め", "も"], // صف M
-  ["や", "ゆ", "よ"],             // صف Y (3 أحرف فقط)
-  ["ら", "り", "る", "れ", "ろ"], // صف R
-  ["わ", "を", "ん"]              // صف W/N
+  ["あ", "い", "う", "え", "お"],
+  ["か", "き", "く", "け", "こ"],
+  ["さ", "し", "す", "せ", "そ"],
+  ["た", "ち", "つ", "て", "と"],
+  ["な", "に", "ぬ", "ね", "の"],
+  ["は", "ひ", "ふ", "へ", "ほ"],
+  ["ま", "み", "む", "め", "も"],
+  ["や", "ゆ", "よ"],
+  ["ら", "り", "る", "れ", "ろ"],
+  ["わ", "を", "ん"]
 ];
 
 const DAKUTEN_TABLE = [
@@ -174,485 +33,6 @@ const DAKUTEN_TABLE = [
   ["ば", "び", "ぶ", "べ", "ぼ"],
   ["ぱ", "ぴ", "ぷ", "ぺ", "ぽ"]
 ];
-
-const DATA = {
-  seion: { name:"الأصوات الأساسية", icon:"🗻", color:"#58cc02", shadow:"#3f9701", words:[
-    {k:"あさ", r:"a sa", en:"morning", m:"صباح", e:"🌅", d:1},
-    {k:"あき", r:"a ki", en:"autumn", m:"خريف", e:"🍂", d:1},
-    {k:"くつ", r:"ku tsu", en:"shoes", m:"حذاء", e:"👟", d:1},
-    {k:"かわ", r:"ka wa", en:"river", m:"نهر", e:"🏞️", d:1},
-    {k:"さいふ", r:"sa i fu", en:"wallet", m:"محفظة", e:"👛", d:2},
-    {k:"さかな", r:"sa ka na", en:"fish", m:"سمك", e:"🐟", d:2},
-    {k:"とり", r:"to ri", en:"bird", m:"طائر", e:"🐦", d:1},
-    {k:"は", r:"ha", en:"tooth", m:"سِنّ (ضرس)", e:"🦷", d:1},
-    {k:"はる", r:"ha ru", en:"spring", m:"ربيع", e:"🌸", d:1},
-    {k:"みみ", r:"mi mi", en:"ear", m:"أذن", e:"👂", d:1},
-    {k:"なつ", r:"na tsu", en:"summer", m:"صيف", e:"☀️", d:1},
-    {k:"なまえ", r:"na ma e", en:"name", m:"اسم", e:"📛", d:2},
-    {k:"えき", r:"e ki", en:"station", m:"محطة", e:"🚉", d:1},
-    {k:"ふね", r:"fu ne", en:"boat", m:"سفينة", e:"🚢", d:1},
-    {k:"ふゆ", r:"fu yu", en:"winter", m:"شتاء", e:"❄️", d:1},
-    {k:"ねこ", r:"ne ko", en:"cat", m:"قطة", e:"🐱", d:1},
-    {k:"いぬ", r:"i nu", en:"dog", m:"كلب", e:"🐶", d:1},
-    {k:"やま", r:"ya ma", en:"mountain", m:"جبل", e:"⛰️", d:1},
-    {k:"ゆき", r:"yu ki", en:"snow", m:"ثلج", e:"☃️", d:1},
-    {k:"よる", r:"yo ru", en:"night", m:"ليل", e:"🌙", d:1},
-  ]},
-  hane: { name:"صوت ん", icon:"🎏", color:"#1cb0f6", shadow:"#0d95d6", words:[
-    {k:"ぱんだ", r:"pa n da", en:"panda", m:"باندا", e:"🐼", d:2},
-    {k:"てんとう", r:"te n to o", en:"ladybug", m:"دعسوقة", e:"🐞", d:3},
-    {k:"ほん", r:"ho n", en:"book", m:"كتاب", e:"📖", d:1},
-    {k:"にほん", r:"ni ho n", en:"Japan", m:"اليابان", e:"🇯🇵", d:2},
-    {k:"とんかつ", r:"to n ka tsu", en:"pork cutlet", m:"كاتسو (لحم خنزير مقلي)", e:"🍱", d:3},
-    {k:"かんこく", r:"ka n ko ku", en:"Korea", m:"كوريا", e:"🇰🇷", d:2},
-    {k:"さんま", r:"sa n ma", en:"saury fish", m:"سمك السانما", e:"🐟", d:2},
-    {k:"かんぱい", r:"ka n pa i", en:"cheers", m:"نخبكم! (كانباي)", e:"🥂", d:3},
-  ]},
-  choon: { name:"المدّ الصوتي", icon:"🍥", color:"#ff9600", shadow:"#d67e00", words:[
-    {k:"いい", r:"i i", en:"good", m:"جيّد", e:"👍", d:1},
-    {k:"とけい", r:"to ke e", en:"clock", m:"ساعة", e:"⏰", d:2},
-    {k:"おかあさん", r:"o ka a sa n", en:"mother", m:"الأم", e:"👩", d:3},
-    {k:"おとうさん", r:"o to o sa n", en:"father", m:"الأب", e:"👨", d:3},
-    {k:"おとうと", r:"o to o to", en:"younger brother", m:"الأخ الأصغر", e:"👦", d:3},
-    {k:"おにいさん", r:"o ni i sa n", en:"older brother", m:"الأخ الأكبر", e:"🧑", d:3},
-    {k:"おねえさん", r:"o ne e sa n", en:"older sister", m:"الأخت الكبرى", e:"👧", d:3},
-    {k:"いもうと", r:"i mo o to", en:"younger sister", m:"الأخت الصغرى", e:"👧", d:2},
-    {k:"せんせい", r:"se n se e", en:"teacher", m:"معلّم / أستاذ", e:"🧑‍🏫", d:2},
-  ]},
-  dakuten: { name:"الأصوات المجهورة", icon:"⛩️", color:"#ce82ff", shadow:"#a54ee0", words:[
-    {k:"えいが", r:"e e ga", en:"movie", m:"فيلم", e:"🎬", d:2},
-    {k:"おんがく", r:"o n ga ku", en:"music", m:"موسيقى", e:"🎵", d:2},
-    {k:"でんわ", r:"de n wa", en:"telephone", m:"هاتف", e:"☎️", d:1},
-    {k:"たまご", r:"ta ma go", en:"egg", m:"بيضة", e:"🥚", d:1},
-    {k:"みず", r:"mi zu", en:"water", m:"ماء", e:"💧", d:1},
-    {k:"がくせい", r:"ga ku se e", en:"student", m:"طالب", e:"🎓", d:2},
-    {k:"えいご", r:"e e go", en:"English", m:"اللغة الإنجليزية", e:"🔤", d:2},
-    {k:"ごはん", r:"go ha n", en:"rice / meal", m:"أرز / وجبة", e:"🍚", d:1},
-    {k:"ごぜん", r:"go ze n", en:"AM", m:"صباحًا (AM)", e:"🌄", d:2},
-    {k:"かばん", r:"ka ba n", en:"bag", m:"حقيبة", e:"👜", d:1},
-    {k:"てんぷら", r:"te n pu ra", en:"tempura", m:"تمبورا", e:"🍤", d:2},
-    {k:"ぎんこう", r:"gi n ko o", en:"bank", m:"بنك", e:"🏦", d:2},
-  ]},
-  sokuon: { name:"الصوت المزدوج っ", icon:"🎐", color:"#2b9348", shadow:"#1c6b32", words:[
-    {k:"はっぱ", r:"ha ppa", en:"leaf", m:"ورقة شجر", e:"🍃", d:2},
-    {k:"きっぷ", r:"ki ppu", en:"ticket", m:"تذكرة", e:"🎫", d:2},
-    {k:"ざっし", r:"za sshi", en:"magazine", m:"مجلة", e:"📰", d:2},
-    {k:"いっかい", r:"i kka i", en:"1st floor / once", m:"الطابق الأول / مرة واحدة", e:"🔢", d:3},
-    {k:"がっこう", r:"ga kko o", en:"school", m:"مدرسة", e:"🏫", d:1},
-  ]},
-  youon: { name:"الأصوات المركّبة", icon:"🎌", color:"#ff4b4b", shadow:"#e63e3e", words:[
-    {k:"きょう", r:"kyo o", en:"today", m:"اليوم", e:"📅", d:1},
-    {k:"ゆうびんきょく", r:"yu u bi n kyo ku", en:"post office", m:"مكتب البريد", e:"📮", d:3},
-    {k:"きゃく", r:"kya ku", en:"guest", m:"ضيف / زبون", e:"🙋", d:2},
-    {k:"ぎゅうにく", r:"gyu u ni ku", en:"beef", m:"لحم بقر", e:"🥩", d:2},
-    {k:"きょうしつ", r:"kyo o shi tsu", en:"classroom", m:"فصل دراسي", e:"🏫", d:2},
-    {k:"かいしゃいん", r:"ka i sha i n", en:"office worker", m:"موظف شركة", e:"💼", d:3},
-    {k:"としょかん", r:"to sho ka n", en:"library", m:"مكتبة", e:"📚", d:2},
-    {k:"どくしょ", r:"do ku sho", en:"reading", m:"القراءة (كهواية)", e:"📖", d:2},
-    {k:"しゅみ", r:"shu mi", en:"hobby", m:"هواية", e:"🎨", d:2},
-    {k:"びじゅつかん", r:"bi ju tsu ka n", en:"art museum", m:"متحف فني", e:"🖼️", d:3},
-    {k:"おちゃ", r:"o cha", en:"green tea", m:"شاي أخضر", e:"🍵", d:1},
-    {k:"こうちゃ", r:"ko o cha", en:"black tea", m:"شاي أسود", e:"☕", d:2},
-    {k:"ちゅうごく", r:"chu u go ku", en:"China", m:"الصين", e:"🇨🇳", d:2},
-    {k:"ぎゅうにゅう", r:"gyu u nyu u", en:"milk", m:"حليب", e:"🥛", d:2},
-    {k:"こんにゃく", r:"ko n nya ku", en:"konjac", m:"كونياكو (جذر نباتي)", e:"🍢", d:3},
-    {k:"ひゃくえん", r:"hya ku e n", en:"100 yen", m:"مئة ين", e:"💴", d:2},
-    {k:"びょういん", r:"byo o i n", en:"hospital", m:"مستشفى", e:"🏥", d:2},
-    {k:"りょこう", r:"ryo ko o", en:"travel", m:"سفر / رحلة", e:"✈️", d:2},
-    {k:"りょうり", r:"ryo o ri", en:"cooking", m:"طبخ", e:"🍳", d:2},
-  ]}
-};
-
-const GROUP_ORDER = ["seion","hane","choon","dakuten","sokuon","youon"];
-const KANA_KEYS = [
-  "あ","い","う","え","お","か","き","く","け","こ","さ","し","す","せ","そ",
-  "た","ち","つ","て","と","な","に","ぬ","ね","の","は","ひ","ふ","へ","ほ",
-  "ま","み","む","め","も","や","ゆ","よ","ら","り","る","れ","ろ","わ","を","ん",
-  "が","ぎ","ぐ","げ","ご","ざ","じ","ず","ぜ","ぞ","だ","ぢ","づ","で","ど",
-  "ば","び","ぶ","べ","ぼ","ぱ","ぴ","ぷ","ぺ","ぽ","ゃ","ゅ","ょ","っ","ー"
-];
-/* Simple hiragana-only stage titles */
-const KANA_NAME = {
-  seion:"きほん", hane:"「ん」", choon:"ながいおん",
-  dakuten:"にごるおん", sokuon:"「っ」", youon:"や ゆ よ"
-};
-/* Different castle-type icon + colour tint per stage so chests don't look identical */
-const CASTLE_ICON = { seion:"🏯", hane:"⛩️", choon:"🏯", dakuten:"⛩️", sokuon:"🏯", youon:"⛩️" };
-const CASTLE_HUE = { seion:0, hane:40, choon:80, dakuten:200, sokuon:280, youon:320 };
-function meaningStr(w){ return w.en + ' / ' + w.m; }
-
-/* ================= STATE ================= */
-let state = {
-  view:'path', currentGroup:null, lessonMode:'grid', studyIndex:0,
-  known:{}, xp:0, hearts:6, progress:{}, srs:{}, streak:0, lastActive:null,
-  quiz:{ pool:[], index:0, correct:0, wrong:0, questions:[], groupKey:null }
-};
-
-async function loadState(){
-  try{ const k = await window.storage.get('mehdisan-known', false); state.known = k&&k.value? JSON.parse(k.value):{}; }catch(e){ state.known={}; }
-  try{ const x = await window.storage.get('mehdisan-xp', false); state.xp = x&&x.value? parseInt(x.value):0; }catch(e){ state.xp=0; }
-  try{ const p = await window.storage.get('mehdisan-progress', false); state.progress = p&&p.value? JSON.parse(p.value):{}; }catch(e){ state.progress={}; }
-  try{ const s = await window.storage.get('mehdisan-srs', false); state.srs = s&&s.value? JSON.parse(s.value):{}; }catch(e){ state.srs={}; }
-  try{ const st = await window.storage.get('mehdisan-streak', false); const obj = st&&st.value? JSON.parse(st.value):{streak:0,lastActive:null}; state.streak=obj.streak||0; state.lastActive=obj.lastActive||null; }catch(e){ state.streak=0; state.lastActive=null; }
-  updateStreak();
-}
-async function saveKnown(){ try{ await window.storage.set('mehdisan-known', JSON.stringify(state.known), false); }catch(e){} }
-async function saveXP(){ try{ await window.storage.set('mehdisan-xp', String(state.xp), false); }catch(e){} }
-async function saveProgress(){ try{ await window.storage.set('mehdisan-progress', JSON.stringify(state.progress), false); }catch(e){} }
-async function saveSRS(){ try{ await window.storage.set('mehdisan-srs', JSON.stringify(state.srs), false); }catch(e){} }
-async function saveStreak(){ try{ await window.storage.set('mehdisan-streak', JSON.stringify({streak:state.streak, lastActive:state.lastActive}), false); }catch(e){} }
-
-function todayStr(){ return new Date().toISOString().slice(0,10); }
-function updateStreak(){
-  const today = todayStr();
-  if(state.lastActive === today) return;
-  if(state.lastActive){
-    const prev = new Date(state.lastActive);
-    const diffDays = Math.round((new Date(today) - prev)/86400000);
-    state.streak = diffDays===1 ? state.streak+1 : 1;
-  } else {
-    state.streak = 1;
-  }
-  state.lastActive = today;
-  saveStreak();
-}
-
-/* ================= SPACED REPETITION (SRS) ================= */
-const SRS_INTERVALS = [0,1,2,4,7,15,30]; /* days until next review, indexed by box 0-6 */
-function isDue(id){
-  const rec = state.srs[id];
-  if(!rec || !rec.next) return true;
-  return new Date(rec.next) <= new Date();
-}
-function updateSRS(id, correct){
-  const rec = state.srs[id] || { box:0, next:null };
-  rec.box = correct ? Math.min(rec.box+1, SRS_INTERVALS.length-1) : Math.max(rec.box-1, 0);
-  const next = new Date();
-  next.setDate(next.getDate() + SRS_INTERVALS[rec.box]);
-  rec.next = next.toISOString();
-  state.srs[id] = rec;
-  saveSRS();
-}
-function allWordsFlat(){
-  let all = [];
-  GROUP_ORDER.forEach(key=> DATA[key].words.forEach((w,i)=> all.push({...w, group:key, id:wordId(key,i)})));
-  return all;
-}
-function getDueWords(){ return allWordsFlat().filter(w=> isDue(w.id)); }
-
-function refreshSRSCard(){
-  const due = getDueWords();
-  const countEl = document.getElementById('srsDueCount');
-  const btn = document.getElementById('srsStartBtn');
-  if(countEl) countEl.textContent = due.length;
-  if(btn){
-    if(due.length===0){
-      btn.textContent = '✅ لا توجد مراجعات الآن';
-      btn.disabled = true;
-    } else {
-      btn.textContent = '🌙 ابدأ المراجعة Start ('+due.length+')';
-      btn.disabled = false;
-    }
-  }
-}
-document.getElementById('srsStartBtn').onclick = ()=>{
-  const due = getDueWords();
-  if(due.length===0) return;
-  startQuiz(shuffle(due), 'srs');
-};
-function wordId(g, idx){ return g+'-'+idx; }
-
-function showView(name){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
-  state.view = name;
-}
-function refreshTopbar(){
-  document.getElementById('xpVal').textContent = state.xp;
-  document.getElementById('streakVal').textContent = state.streak;
-  document.getElementById('heartsVal').textContent = Math.max(state.hearts,0);
-}
-
-/* ================= ADVENTURE MAP PATH ================= */
-const MAP_POINTS = [
-  {x:22, y:70},
-  {x:76, y:245},
-  {x:24, y:420},
-  {x:78, y:595},
-  {x:22, y:770},
-  {x:72, y:945}
-];
-const MAP_H = 980;
-const SCENERY = [
-  {e:'🏯', x:6, y:20}, {e:'⛩️', x:88, y:10}, {e:'🎋', x:40, y:55}, {e:'🌲', x:55, y:120},
-  {e:'🏘️', x:8, y:170}, {e:'🗼', x:92, y:180}, {e:'⛩️', x:50, y:200},
-  {e:'🎏', x:88, y:330}, {e:'🎋', x:12, y:340}, {e:'🏘️', x:55, y:365},
-  {e:'🌳', x:6, y:480}, {e:'🏯', x:92, y:460}, {e:'🎋', x:50, y:530},
-  {e:'🏘️', x:88, y:650}, {e:'⛩️', x:10, y:640}, {e:'🌲', x:48, y:690},
-  {e:'🏯', x:6, y:800}, {e:'🏘️', x:90, y:820}, {e:'🌳', x:45, y:850},
-  {e:'🎋', x:10, y:920}, {e:'🏯', x:88, y:940}, {e:'⛩️', x:72, y:1000}
-];
-
-/* Seasonal theme per stage: matched to the 6 existing chapters */
-const SEASON = { seion:'spring', hane:'summer', choon:'autumn', dakuten:'winter', sokuon:'mist', youon:'final' };
-
-function spawnSeasonParticles(container, season, topY, heightPx){
-  const zone = document.createElement('div');
-  zone.className = 'season-zone';
-  zone.style.top = topY+'px';
-  zone.style.height = heightPx+'px';
-  if(season!=='final'){
-    const count = 8;
-    for(let i=0;i<count;i++){
-      const el = document.createElement('div');
-      const left = Math.random()*100;
-      const delay = Math.random()*6;
-      const dur = 5+Math.random()*4;
-      if(season==='spring'){ el.className='sp sp-sakura'; el.textContent='🌸'; }
-      else if(season==='autumn'){ el.className='sp sp-leaf'; el.textContent = Math.random()>0.5?'🍁':'🍂'; }
-      else if(season==='winter'){ el.className='sp sp-snow'; el.textContent='❄️'; }
-      else if(season==='summer'){ el.className='sp sp-lantern'; el.textContent='🏮'; }
-      else if(season==='mist'){ el.className='sp sp-fog'; el.style.width='120px'; el.style.height='60px'; }
-      el.style.left = left+'%'; el.style.top = (Math.random()*heightPx)+'px';
-      el.style.animationDuration = dur+'s';
-      el.style.animationDelay = delay+'s';
-      zone.appendChild(el);
-    }
-  }
-  if(season==='summer'){
-    for(let i=0;i<5;i++){
-      const fly = document.createElement('div'); fly.className='sp sp-firefly'; fly.textContent='✨';
-      fly.style.left = (Math.random()*100)+'%'; fly.style.top = (Math.random()*heightPx)+'px';
-      fly.style.animationDuration = (2+Math.random()*2)+'s';
-      zone.appendChild(fly);
-    }
-  }
-  if(season==='final'){
-    const dragon = document.createElement('div'); dragon.className='sp-dragon'; dragon.textContent='🐉';
-    dragon.style.left='58%'; dragon.style.top=(heightPx*0.25)+'px';
-    zone.appendChild(dragon);
-  }
-  container.appendChild(zone);
-}
-function clearSeason(){
-  const layer = document.getElementById('seasonLayer');
-  if(layer) layer.innerHTML = '';
-}
-function activateSeason(season){
-  const layer = document.getElementById('seasonLayer');
-  if(!layer || !season) return;
-  layer.innerHTML = '';
-  spawnSeasonParticles(layer, season, 0, window.innerHeight);
-}
-
-function isUnlocked(idx){
-  if(idx===0) return true;
-  const prevKey = GROUP_ORDER[idx-1];
-  return !!(state.progress[prevKey] && state.progress[prevKey].done);
-}
-
-function buildMapSvg(){
-  const svg = document.getElementById('mapSvg');
-  const pts = MAP_POINTS;
-  let d = `M${pts[0].x},${pts[0].y}`;
-  for(let i=0;i<pts.length-1;i++){
-    const a = pts[i], b = pts[i+1];
-    const midY = (a.y+b.y)/2;
-    d += ` C${a.x},${midY} ${b.x},${midY} ${b.x},${b.y}`;
-  }
-  svg.innerHTML = `
-    <path d="${d}" fill="none" stroke="#a97c3f" stroke-width="7" stroke-linecap="round"/>
-    <path d="${d}" fill="none" stroke="#e0b06a" stroke-width="4.2" stroke-linecap="round"/>
-    <path d="${d}" fill="none" stroke="#fff6d9" stroke-width="1.2" stroke-dasharray="4 6" stroke-linecap="round" opacity="0.85"/>
-  `;
-}
-
-function buildScenery(container){
-  SCENERY.forEach(s=>{
-    const el = document.createElement('div');
-    el.className = 'map-scenery';
-    el.textContent = s.e;
-    el.style.left = s.x+'%';
-    el.style.top = s.y+'px';
-    container.appendChild(el);
-  });
-}
-
-function buildPath(){
-  refreshSRSCard();
-  const wrap = document.getElementById('mapWrap');
-  wrap.style.height = MAP_H+'px';
-  wrap.querySelectorAll('.map-scenery, .map-node, .samurai-marker, .season-zone').forEach(n=>n.remove());
-  clearSeason();
-  buildMapSvg();
-  buildScenery(wrap);
-
-  let carPos = null;
-  GROUP_ORDER.forEach((key, idx)=>{
-    const g = DATA[key];
-    const unlocked = isUnlocked(idx);
-    const prog = state.progress[key] || {done:false, stars:0};
-    const pt = MAP_POINTS[idx];
-
-
-    const node = document.createElement('div');
-    node.className = 'map-node';
-    node.style.left = pt.x+'%';
-    node.style.top = pt.y+'px';
-
-    const chest = document.createElement('button');
-    chest.className = 'chest-btn' + (unlocked? '' : ' locked');
-    chest.style.setProperty('--main-c', unlocked? g.color : '');
-    chest.style.setProperty('--shadow-c', unlocked? g.shadow : '');
-    const castleIcon = CASTLE_ICON[key];
-    chest.style.filter = unlocked ? `hue-rotate(${CASTLE_HUE[key]}deg)` : '';
-    if(!unlocked){
-      chest.innerHTML = `${castleIcon}<span class="lock-badge">🔒</span>`;
-    } else if(prog.done){
-      chest.innerHTML = `${castleIcon}<span class="flag-badge">🇯🇵</span>`;
-    } else {
-      chest.innerHTML = `${castleIcon}`;
-    }
-    chest.onclick = ()=>{ if(unlocked) openLesson(key); };
-    node.appendChild(chest);
-
-    if(prog.done){
-      const stars = document.createElement('div');
-      stars.className = 'stars';
-      stars.textContent = '⭐'.repeat(prog.stars||1) + '☆'.repeat(3-(prog.stars||1));
-      node.appendChild(stars);
-    }
-    const label = document.createElement('div');
-    label.className = 'map-node-label';
-    label.textContent = g.icon+' '+KANA_NAME[key];
-    node.appendChild(label);
-    const sub = document.createElement('div');
-    sub.className = 'map-node-sub';
-    sub.textContent = g.words.length+' كلمة';
-    node.appendChild(sub);
-    wrap.appendChild(node);
-
-    if(unlocked && !prog.done) carPos = pt;
-  });
-  if(!carPos) carPos = MAP_POINTS[MAP_POINTS.length-1];
-
-  const samurai = document.createElement('div');
-  samurai.className = 'samurai-marker';
-  samurai.textContent = '🥷';
-  samurai.style.left = carPos.x+'%';
-  samurai.style.top = carPos.y+'px';
-  wrap.appendChild(samurai);
-}
-
-document.getElementById('fullTestBtn').onclick = ()=>{
-  let all = [];
-  GROUP_ORDER.forEach(key=> DATA[key].words.forEach((w,i)=> all.push({...w, group:key, id:wordId(key,i)})));
-  startQuiz(all, null);
-};
-
-/* ================= LESSON VIEW ================= */
-function openLesson(key){
-  state.currentGroup = key; state.studyIndex = 0; state.lessonMode='grid';
-  activateSeason(SEASON[key]);
-  document.getElementById('lessonTitle').textContent = DATA[key].icon+' '+KANA_NAME[key];
-  document.getElementById('btnGrid').classList.add('active');
-  document.getElementById('btnStudy').classList.remove('active');
-  document.getElementById('grid').style.display='grid';
-  document.getElementById('studyView').classList.remove('active');
-  buildGrid(); buildStudy(); showView('lesson');
-}
-document.getElementById('lessonBack').onclick = ()=>{ buildPath(); showView('path'); };
-function difficultyStars(d){ return '⭐'.repeat(d) + '<span style="opacity:.2">'+'⭐'.repeat(3-d)+'</span>'; }
-
-function buildGrid(){
-  const key = state.currentGroup; const g = DATA[key];
-  const grid = document.getElementById('grid'); grid.innerHTML='';
-  g.words.forEach((w, idx)=>{
-    const id = wordId(key, idx);
-    const card = document.createElement('div'); card.className='card';
-    card.innerHTML = `
-      <button class="speak-btn" data-speak="${w.k}">🔊</button>
-      <button class="star-btn ${state.known[id]?'on':''}" data-id="${id}">⭐</button>
-      <div class="card-inner">
-        <div class="face face-front">
-          <div class="emoji">${w.e}</div>
-          <div class="kana">${w.k}</div>
-          <div class="romaji-front">${w.r}</div>
-          <div class="difficulty">${difficultyStars(w.d)}</div>
-        </div>
-        <div class="face face-back">
-          <div class="kana-echo">${w.k}</div>
-          <div class="romaji-mid">${w.r}</div>
-          <div class="en-line">${w.en}</div>
-          <div class="meaning">${w.m}</div>
-        </div>
-      </div>`;
-    card.addEventListener('click', (ev)=>{
-      if(ev.target.closest('.star-btn') || ev.target.closest('.speak-btn')) return;
-      card.classList.toggle('flipped');
-      speak(w.k, card.querySelector('.face-front .emoji'));
-    });
-    card.querySelector('.speak-btn').addEventListener('click', (ev)=>{
-      ev.stopPropagation();
-      speak(w.k, card.querySelector('.face-front .emoji'));
-    });
-    card.querySelector('.star-btn').addEventListener('click', (ev)=>{
-      ev.stopPropagation(); state.known[id] = !state.known[id];
-      ev.currentTarget.classList.toggle('on'); saveKnown();
-    });
-    grid.appendChild(card);
-  });
-}
-function buildStudy(){
-  const key = state.currentGroup; const g = DATA[key]; const w = g.words[state.studyIndex];
-  document.getElementById('sEmoji').textContent = w.e;
-  document.getElementById('sKana').textContent = w.k;
-  document.getElementById('sRomajiFront').textContent = w.r;
-  document.getElementById('sDiff').innerHTML = difficultyStars(w.d);
-  document.getElementById('sKanaEcho').textContent = w.k;
-  document.getElementById('sRomajiMid').textContent = w.r;
-  document.getElementById('sEn').textContent = w.en;
-  document.getElementById('sMeaning').textContent = w.m;
-  document.getElementById('studyCount').textContent = (state.studyIndex+1)+' / '+g.words.length;
-  document.getElementById('studyCard').classList.remove('flipped');
-  document.getElementById('sSpeak').onclick = (ev)=>{ ev.stopPropagation(); speak(w.k, document.getElementById('sEmoji')); };
-}
-document.getElementById('btnGrid').onclick = ()=>{
-  state.lessonMode='grid';
-  document.getElementById('btnGrid').classList.add('active');
-  document.getElementById('btnStudy').classList.remove('active');
-  document.getElementById('grid').style.display='grid';
-  document.getElementById('studyView').classList.remove('active');
-};
-document.getElementById('btnStudy').onclick = ()=>{
-  state.lessonMode='study';
-  document.getElementById('btnStudy').classList.add('active');
-  document.getElementById('btnGrid').classList.remove('active');
-  document.getElementById('grid').style.display='none';
-  document.getElementById('studyView').classList.add('active');
-  buildStudy();
-};
-document.getElementById('btnQuizFromLesson').onclick = ()=>{
-  const key = state.currentGroup;
-  const words = DATA[key].words.map((w,i)=>({...w, group:key, id:wordId(key,i)}));
-  startQuiz(words, key);
-};
-document.getElementById('studyCard').addEventListener('click', ()=>{
-  const w = DATA[state.currentGroup].words[state.studyIndex];
-  document.getElementById('studyCard').classList.toggle('flipped');
-  speak(w.k, document.getElementById('sEmoji'));
-});
-document.getElementById('prevBtn').onclick = ()=>{
-  const g = DATA[state.currentGroup];
-  state.studyIndex = (state.studyIndex-1+g.words.length)%g.words.length; buildStudy();
-};
-document.getElementById('nextBtn').onclick = ()=>{
-  const g = DATA[state.currentGroup];
-  state.studyIndex = (state.studyIndex+1)%g.words.length; buildStudy();
-};
-
-/* ================= QUIZ ================= */
-function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
 function buildQuestions(pool){
   let allWords = [];
@@ -674,208 +54,73 @@ function buildQuestions(pool){
   });
 }
 
-function startQuiz(pool, groupKey){
-  const questions = buildQuestions(pool);
-  state.quiz = { pool, index:0, correct:0, wrong:0, questions, groupKey };
-  state.hearts = 6;
-  const season = groupKey === null ? 'final' : (groupKey === 'srs' ? 'mist' : SEASON[groupKey]);
-  activateSeason(season);
-  refreshTopbar();
-  showView('quiz');
-  renderQuestion();
-}
-
 function renderQuestion(){
   const q = state.quiz.questions[state.quiz.index];
-  document.getElementById('quizProgressFill').style.width = (state.quiz.index/state.quiz.questions.length*100)+'%';
-  document.getElementById('quizHearts').textContent = Math.max(state.hearts,0);
-  const promptEl = document.getElementById('quizPrompt');
-  const mainEl = document.getElementById('quizMain');
-  const subEl = document.getElementById('quizSub');
-  const speakBtn = document.getElementById('quizSpeakBtn');
-  const optWrap = document.getElementById('quizOptions');
-  optWrap.innerHTML = '';
+  // ... (الكود السابق حتى if(q.type===3) ...
 
-  if(q.type===0){
-    promptEl.textContent = 'ما معنى هذه الكلمة؟ (English / عربي)';
-    mainEl.textContent = q.word.k; subEl.textContent = q.word.r+' · '+q.word.e;
-    speakBtn.style.display='inline-block'; speakBtn.onclick = ()=> speak(q.word.k, mainEl);
-    mainEl.onclick = ()=> speak(q.word.k, mainEl);
-    mainEl.style.cursor='pointer';
-    speak(q.word.k, mainEl);
-  } else if(q.type===1){
-    promptEl.textContent = 'اختر الكلمة اليابانية الصحيحة';
-    mainEl.textContent = q.word.en+' / '+q.word.m; subEl.textContent = q.word.e;
-    speakBtn.style.display='none';
-    mainEl.onclick = null;
-    mainEl.style.cursor='default';
-  } else if(q.type===2){
-    promptEl.textContent = '🔊 استمع واختر الكتابة الصحيحة / Listen & choose';
-    mainEl.textContent = '🔊'; subEl.textContent = '';
-    speakBtn.style.display='inline-block'; speakBtn.onclick = ()=> speak(q.word.k, mainEl);
-    mainEl.onclick = ()=> speak(q.word.k, mainEl);
-    mainEl.style.cursor='pointer';
-    speak(q.word.k, mainEl);
-  } else {
-    promptEl.textContent = 'اكتب هذه الكلمة بالهيراغانا (写す / اكتب)';
-    mainEl.textContent = q.word.e+' '+q.word.en; subEl.textContent = q.word.m;
-    speakBtn.style.display='inline-block'; speakBtn.onclick = ()=> speak(q.word.k, mainEl);
-    mainEl.onclick = null; mainEl.style.cursor='default';
-    const box = document.createElement('div'); box.className='type-wrap';
+  if(q.type===3){  // سؤال كتابة
+    promptEl.textContent = 'اكتب هذه الكلمة بالهيراغانا';
+    mainEl.textContent = q.word.e + ' ' + q.word.en;
+    subEl.textContent = q.word.m;
+    
+    const box = document.createElement('div');
+    box.className = 'type-wrap';
     box.innerHTML = `
       <div class="kana-answer-box" id="kanaAnswerBox">&nbsp;</div>
-      <div class="kana-keyboard" id="kanaKeyboard"></div>
+      <div class="kana-keyboard" id="kanaKeyboard" style="grid-template-columns:repeat(5,1fr); gap:6px;"></div>
       <div class="kana-controls">
         <button class="btn btn-gray" id="kanaDelete">⌫ حذف</button>
         <button class="btn btn-blue" id="kanaSubmit">تحقّق ✓</button>
       </div>`;
     optWrap.appendChild(box);
+
     let typed = '';
     const answerBox = document.getElementById('kanaAnswerBox');
     const kb = document.getElementById('kanaKeyboard');
-    KANA_KEYS.forEach(ch=>{
-      const key = document.createElement('button');
-      key.className='kana-key'; key.textContent=ch;
-      key.onclick = ()=>{ typed += ch; answerBox.textContent = typed; };
-      kb.appendChild(key);
+
+    // Main Kana
+    KANA_TABLE.forEach(row => {
+      row.forEach(ch => {
+        const key = document.createElement('button');
+        key.className = 'kana-key';
+        key.textContent = ch;
+        key.onclick = () => { typed += ch; answerBox.textContent = typed; };
+        kb.appendChild(key);
+      });
     });
-    document.getElementById('kanaDelete').onclick = ()=>{ typed = typed.slice(0,-1); answerBox.textContent = typed || '\u00A0'; };
-    document.getElementById('kanaSubmit').onclick = ()=>{
+
+    // Dakuten Section
+    const dakutenTitle = document.createElement('div');
+    dakutenTitle.style.cssText = 'grid-column:1/-1; text-align:center; margin:8px 0 4px; font-size:13px; color:#ffc800;';
+    dakutenTitle.textContent = 'ـ dakuten ـ';
+    kb.appendChild(dakutenTitle);
+
+    DAKUTEN_TABLE.forEach(row => {
+      row.forEach(ch => {
+        const key = document.createElement('button');
+        key.className = 'kana-key';
+        key.textContent = ch;
+        key.style.background = '#3b2e5e';
+        key.onclick = () => { typed += ch; answerBox.textContent = typed; };
+        kb.appendChild(key);
+      });
+    });
+
+    document.getElementById('kanaDelete').onclick = () => {
+      typed = typed.slice(0, -1);
+      answerBox.textContent = typed || '\u00A0';
+    };
+
+    document.getElementById('kanaSubmit').onclick = () => {
       answerQuestion(typed.trim(), document.getElementById('kanaSubmit'), true);
     };
     return;
   }
 
-  q.options.forEach(opt=>{
-    const b = document.createElement('button'); b.className='opt-btn'; b.textContent=opt;
-    b.onclick = ()=> answerQuestion(opt, b, false);
-    optWrap.appendChild(b);
-  });
+  // ... (باقي أنواع الأسئلة كما هي)
 }
 
-function answerQuestion(selected, btnEl, isTyping){
-  const q = state.quiz.questions[state.quiz.index];
-  if(isTyping){
-    document.querySelectorAll('.kana-key, #kanaSubmit, #kanaDelete').forEach(b=> b.disabled=true);
-  } else {
-    document.querySelectorAll('#quizOptions .opt-btn').forEach(b=> b.disabled=true);
-  }
-  const isCorrect = selected === q.correct;
-  if(q.word && q.word.id) updateSRS(q.word.id, isCorrect);
-  if(!isTyping){
-    if(isCorrect){ btnEl.classList.add('correct'); }
-    else{
-      btnEl.classList.add('wrong');
-      document.querySelectorAll('#quizOptions .opt-btn').forEach(b=>{ if(b.textContent===q.correct) b.classList.add('correct'); });
-    }
-  }
-  if(isCorrect){ state.quiz.correct++; state.xp += 10; saveXP(); playCorrectSound(); }
-  else {
-    state.quiz.wrong++; state.hearts = Math.max(state.hearts-1,0); playWrongSound();
-    if(state.hearts<=0){ state.quiz.gameOver = true; }
-  }
-  refreshTopbar();
-  showFeedback(isCorrect, q);
-}
-
-function showFeedback(isCorrect, q){
-  renderInto('feedbackMascotWrap', fennecSVG(isCorrect?'happy':'sad', 46));
-  const bar = document.getElementById('feedbackBar');
-  bar.className = 'feedback-bar show ' + (isCorrect?'ok':'bad');
-  if(state.quiz.gameOver){
-    document.getElementById('feedbackText').textContent = '💔 ハートがなくなった Out of hearts!';
-    document.getElementById('feedbackSub').textContent = 'انتهت قلوبك، العودة إلى بداية المرحلة / Hearts depleted, returning to the start.';
-    document.getElementById('continueBtn').textContent = '🏠 ホーム Home / العودة للبداية';
-  } else {
-    document.getElementById('feedbackText').textContent = isCorrect? '✅ Correct! صحيح' : '❌ Wrong! خطأ';
-    document.getElementById('feedbackSub').textContent = isCorrect? '' : ('Correct answer / الصحيح: ' + q.correct);
-    document.getElementById('continueBtn').textContent = 'つづく Continue / متابعة';
-  }
-}
-document.getElementById('continueBtn').onclick = ()=>{
-  document.getElementById('feedbackBar').classList.remove('show');
-  if(state.quiz.gameOver){
-    state.quiz.gameOver = false;
-    buildPath(); showView('path');
-    return;
-  }
-  state.quiz.index++;
-  if(state.quiz.index >= state.quiz.questions.length){ finishQuiz(); }
-  else{ renderQuestion(); }
-};
-document.getElementById('quizExit').onclick = ()=>{
-  document.getElementById('feedbackBar').classList.remove('show');
-  buildPath(); showView('path');
-};
-
-function finishQuiz(){
-  const total = state.quiz.questions.length;
-  const correct = state.quiz.correct;
-  const pct = Math.round((correct/total)*100);
-  let stars = 0; if(pct>=90) stars=3; else if(pct>=70) stars=2; else if(pct>=50) stars=1;
-  const xpEarned = correct*10;
-
-  // FULL TEST -> champion screen
-  if(state.quiz.groupKey === null){
-    document.getElementById('champScore').textContent = correct+'/'+total;
-    document.getElementById('champPercent').textContent = pct+'%';
-    playFireworkSound();
-    spawnFireworks('big');
-    setTimeout(()=> spawnFireworks('big'), 600);
-    setTimeout(()=> playCongratsVoice(), 400);
-    showView('champion');
-    return;
-  }
-
-  if(state.quiz.groupKey && GROUP_ORDER.includes(state.quiz.groupKey)){
-    const prev = state.progress[state.quiz.groupKey] || {done:false, stars:0};
-    const justPassed = !prev.done && pct>=50;
-    state.progress[state.quiz.groupKey] = { done: prev.done||pct>=50, stars: Math.max(prev.stars||0, stars) };
-    saveProgress();
-    if(justPassed){ spawnFireworks('small'); playFireworkSound(); }
-  }
-
-  const mood = pct>=50? 'happy':'sad';
-  renderInto('resultMascotWrap', fennecSVG(mood, 110));
-  document.getElementById('resultTitle').textContent = pct>=90? 'ممتاز! أداء رائع' : pct>=70? 'أحسنت!' : pct>=50? 'جيد، واصل التدريب' : 'حاول مرة أخرى';
-
-  if(state.quiz.groupKey === 'srs'){
-    document.getElementById('resultMsgAr').textContent = '🌙 أحسنت! مراجعتك الذكية اليوم اكتملت';
-    document.getElementById('resultMsgEn').textContent = 'Great! Today\'s smart review is complete.';
-  } else {
-    const gIdx = GROUP_ORDER.indexOf(state.quiz.groupKey);
-    const hasNext = gIdx < GROUP_ORDER.length-1;
-    if(pct>=50 && hasNext){
-      document.getElementById('resultMsgAr').textContent = 'برافو! لقد تأهلت للدور القادم 🎉';
-      document.getElementById('resultMsgEn').textContent = 'Bravo! You qualified for the next round!';
-    } else if(pct>=50 && !hasNext){
-      document.getElementById('resultMsgAr').textContent = 'أنهيت جميع المراحل! جرّب الاختبار الشامل الآن';
-      document.getElementById('resultMsgEn').textContent = 'All stages complete! Try the big final test now.';
-    } else {
-      document.getElementById('resultMsgAr').textContent = 'لا بأس، راجع البطاقات وحاول مرة أخرى';
-      document.getElementById('resultMsgEn').textContent = 'No worries, review the cards and try again.';
-    }
-  }
-
-  document.getElementById('resultStars').textContent = '⭐'.repeat(stars)+'☆'.repeat(3-stars);
-  document.getElementById('resultScore').textContent = correct+'/'+total;
-  document.getElementById('resultPercent').textContent = pct+'%';
-  document.getElementById('resultXP').textContent = xpEarned;
-  showView('result');
-}
-
-document.getElementById('retryBtn').onclick = ()=>{ startQuiz(state.quiz.pool, state.quiz.groupKey); };
-document.getElementById('homeBtn').onclick = ()=>{ buildPath(); showView('path'); };
-document.getElementById('champHomeBtn').onclick = ()=>{ buildPath(); showView('path'); };
-
-
-/* ================= INIT ================= */
-(async function init(){
-  renderInto('logoWrap', `<div style="display:flex;align-items:center;gap:8px;">
-    ${algeriaBadgeSVG(false, 36)}
-    <div class="logo-text"><b>Mehdi San</b><span>メヒサン 先生</span></div>
-  </div>`);
-  await loadState();
-  refreshTopbar();
-  buildPath();
-})();
+// باقي الكود كما هو...
+</script>
+</body>
+</html>
