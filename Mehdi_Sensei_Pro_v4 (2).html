@@ -184,8 +184,13 @@ const KANA_GHOSTS=['あ','い','う','え','お','か','き','く','け','こ','
 let state={welcomeSeen:false,musicOn:true,sfxOn:true,xp:0,stars:0,progress:STAGES.map(()=>({done:false,stars:0,score:0})),currentStage:0,learned:{},view:'map',mode:'cards',quiz:null};
 let audioCtx=null, musicNodes=[], musicTimer=null;
 function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY); if(raw){state={...state,...JSON.parse(raw)};}}catch(e){}}
-function saveState(){localStorage.setItem(STORAGE_KEY, JSON.stringify(state));}
-function qs(id){return document.getElementById(id)}
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn("حفظ البيانات غير متاح في هذه البيئة:", e);
+  }
+}function qs(id){return document.getElementById(id)}
 function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
 function shuffle(arr){const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;}
 function levelFromXP(xp){return Math.max(1,Math.floor(xp/120)+1)}
@@ -252,8 +257,27 @@ qs('musicToggleBtn').onclick=()=>{ state.musicOn=!state.musicOn; saveState(); up
 qs('toggleMusicWelcomeBtn').onclick=()=>{ state.musicOn=!state.musicOn; saveState(); updateStats(); state.musicOn?startMusic():stopMusic(); qs('toggleMusicWelcomeBtn').textContent=state.musicOn?'🎵 إيقاف الموسيقى':'🎵 تشغيل الموسيقى'; };
 qs('sfxToggleBtn').onclick=()=>{ state.sfxOn=!state.sfxOn; saveState(); updateStats(); playSfx('click'); };
 qs('resetBtn').onclick=()=>{ if(!confirm('هل تريد إعادة ضبط التطبيق بالكامل؟')) return; localStorage.removeItem(STORAGE_KEY); location.reload(); };
-qs('startJourneyBtn').onclick=()=>{ state.welcomeSeen=true; saveState(); qs('welcomeScreen').classList.add('hidden'); renderMap(); startMusic(); playSfx('success'); };
-function initWelcome(){ if(!state.welcomeSeen) qs('welcomeScreen').classList.remove('hidden'); else qs('welcomeScreen').classList.add('hidden'); }
+qs('startJourneyBtn').onclick = () => {
+  // 1. إخفاء الشاشة فوراً لضمان الاستجابة المباشرة للمستخدم
+  qs('welcomeScreen').classList.add('hidden');
+  
+  // 2. تحديث الحالة ورسم الخريطة
+  state.welcomeSeen = true;
+  saveState();
+  renderMap();
+  
+  // 3. تفعيل الصوتيات للعمل فوراً استجابةً لنقرة المستخدم
+  const ctx = getCtx();
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume().then(() => {
+      startMusic();
+      playSfx('success');
+    }).catch(() => {});
+  } else {
+    startMusic();
+    playSfx('success');
+  }
+};function initWelcome(){ if(!state.welcomeSeen) qs('welcomeScreen').classList.remove('hidden'); else qs('welcomeScreen').classList.add('hidden'); }
 function initCloud(){ qs('cloudBuddy').innerHTML=cloudBuddyMarkup(); }
 function init(){ loadState(); renderSpaceship(); initCloud(); spawnParticles(); updateStats(); renderMap(); initWelcome(); if(state.musicOn) startMusic(); }
 init();
