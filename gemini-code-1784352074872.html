@@ -1,126 +1,130 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mehdi San | メヒサン</title>
-<!-- ... (كل الـ <style> السابقة تبقى كما هي) ... -->
-</head>
-<body>
-<!-- ... (كل الـ HTML السابق يبقى كما هو) ... -->
-
 <script>
-// ... (كل الكود السابق حتى دالة renderQuestion) ...
-
-/* ================= IMPROVED KANA KEYBOARD ================= */
-const KANA_TABLE = [
-  ["あ", "い", "う", "え", "お"],
-  ["か", "き", "く", "け", "こ"],
-  ["さ", "し", "す", "せ", "そ"],
-  ["た", "ち", "つ", "て", "と"],
-  ["な", "に", "ぬ", "ね", "の"],
-  ["は", "ひ", "ふ", "へ", "ほ"],
-  ["ま", "み", "む", "め", "も"],
-  ["や", "ゆ", "よ"],
-  ["ら", "り", "る", "れ", "ろ"],
-  ["わ", "を", "ん"]
-];
-
-const DAKUTEN_TABLE = [
-  ["が", "ぎ", "ぐ", "げ", "ご"],
-  ["ざ", "じ", "ず", "ぜ", "ぞ"],
-  ["だ", "ぢ", "づ", "で", "ど"],
-  ["ば", "び", "ぶ", "べ", "ぼ"],
-  ["ぱ", "ぴ", "ぷ", "ぺ", "ぽ"]
-];
-
-function buildQuestions(pool){
-  let allWords = [];
-  GROUP_ORDER.forEach(key=> DATA[key].words.forEach((ww,idx)=> allWords.push({...ww, group:key, id:wordId(key,idx)})));
-  return pool.map((w, i)=>{
-    const type = i % 4;
-    if(type===3){
-      return { word:w, type, correct:w.k };
-    }
-    let correct, field;
-    if(type===0){ correct = meaningStr(w); field=null; }
-    else if(type===1){ correct = w.k; field='k'; }
-    else { correct = w.k; field='k'; }
-    let candidates = allWords.filter(ww=> ww.id!==w.id);
-    candidates = shuffle(candidates).slice(0,3);
-    let optVals = candidates.map(c=> type===0? meaningStr(c) : c[field]);
-    let options = shuffle([correct, ...optVals]);
-    return { word:w, type, correct, options };
-  });
-}
+// ... (الكود السابق كاملاً حتى renderQuestion) ...
 
 function renderQuestion(){
   const q = state.quiz.questions[state.quiz.index];
-  // ... (الكود السابق حتى if(q.type===3) ...
+  document.getElementById('quizProgressFill').style.width = (state.quiz.index/state.quiz.questions.length*100)+'%';
+  document.getElementById('quizHearts').textContent = Math.max(state.hearts,0);
 
-  if(q.type===3){  // سؤال كتابة
+  const promptEl = document.getElementById('quizPrompt');
+  const mainEl = document.getElementById('quizMain');
+  const subEl = document.getElementById('quizSub');
+  const speakBtn = document.getElementById('quizSpeakBtn');
+  const optWrap = document.getElementById('quizOptions');
+  optWrap.innerHTML = '';
+
+  // إخفاء الكيبورد افتراضياً
+  hideKeyboard();
+
+  if(q.type === 0){
+    promptEl.textContent = 'ما معنى هذه الكلمة؟ (English / عربي)';
+    mainEl.textContent = q.word.k; 
+    subEl.textContent = q.word.r + ' · ' + q.word.e;
+    speakBtn.style.display = 'inline-block';
+    speakBtn.onclick = () => speak(q.word.k, mainEl);
+    mainEl.onclick = () => speak(q.word.k, mainEl);
+    speak(q.word.k, mainEl);
+  } 
+  else if(q.type === 1){
+    promptEl.textContent = 'اختر الكلمة اليابانية الصحيحة';
+    mainEl.textContent = q.word.en + ' / ' + q.word.m; 
+    subEl.textContent = q.word.e;
+    speakBtn.style.display = 'none';
+  } 
+  else if(q.type === 2){
+    promptEl.textContent = '🔊 استمع واختر الكتابة الصحيحة';
+    mainEl.textContent = '🔊'; 
+    subEl.textContent = '';
+    speakBtn.style.display = 'inline-block';
+    speakBtn.onclick = () => speak(q.word.k, mainEl);
+    speak(q.word.k, mainEl);
+  } 
+  else if(q.type === 3){  // ← سؤال الكتابة فقط
     promptEl.textContent = 'اكتب هذه الكلمة بالهيراغانا';
     mainEl.textContent = q.word.e + ' ' + q.word.en;
     subEl.textContent = q.word.m;
-    
-    const box = document.createElement('div');
-    box.className = 'type-wrap';
-    box.innerHTML = `
-      <div class="kana-answer-box" id="kanaAnswerBox">&nbsp;</div>
-      <div class="kana-keyboard" id="kanaKeyboard" style="grid-template-columns:repeat(5,1fr); gap:6px;"></div>
-      <div class="kana-controls">
-        <button class="btn btn-gray" id="kanaDelete">⌫ حذف</button>
-        <button class="btn btn-blue" id="kanaSubmit">تحقّق ✓</button>
-      </div>`;
-    optWrap.appendChild(box);
+    speakBtn.style.display = 'inline-block';
+    speakBtn.onclick = () => speak(q.word.k, mainEl);
 
-    let typed = '';
-    const answerBox = document.getElementById('kanaAnswerBox');
-    const kb = document.getElementById('kanaKeyboard');
-
-    // Main Kana
-    KANA_TABLE.forEach(row => {
-      row.forEach(ch => {
-        const key = document.createElement('button');
-        key.className = 'kana-key';
-        key.textContent = ch;
-        key.onclick = () => { typed += ch; answerBox.textContent = typed; };
-        kb.appendChild(key);
-      });
-    });
-
-    // Dakuten Section
-    const dakutenTitle = document.createElement('div');
-    dakutenTitle.style.cssText = 'grid-column:1/-1; text-align:center; margin:8px 0 4px; font-size:13px; color:#ffc800;';
-    dakutenTitle.textContent = 'ـ dakuten ـ';
-    kb.appendChild(dakutenTitle);
-
-    DAKUTEN_TABLE.forEach(row => {
-      row.forEach(ch => {
-        const key = document.createElement('button');
-        key.className = 'kana-key';
-        key.textContent = ch;
-        key.style.background = '#3b2e5e';
-        key.onclick = () => { typed += ch; answerBox.textContent = typed; };
-        kb.appendChild(key);
-      });
-    });
-
-    document.getElementById('kanaDelete').onclick = () => {
-      typed = typed.slice(0, -1);
-      answerBox.textContent = typed || '\u00A0';
-    };
-
-    document.getElementById('kanaSubmit').onclick = () => {
-      answerQuestion(typed.trim(), document.getElementById('kanaSubmit'), true);
-    };
-    return;
+    showTypingKeyboard(q);
+    return; // لا نضيف أزرار الاختيار
   }
 
-  // ... (باقي أنواع الأسئلة كما هي)
+  // أزرار الاختيار العادية
+  q.options.forEach(opt => {
+    const b = document.createElement('button');
+    b.className = 'opt-btn';
+    b.textContent = opt;
+    b.onclick = () => answerQuestion(opt, b, false);
+    optWrap.appendChild(b);
+  });
 }
 
-// باقي الكود كما هو...
+/* ================= لوحة الكتابة (تظهر فقط في أسئلة الكتابة) ================= */
+function showTypingKeyboard(q){
+  const optWrap = document.getElementById('quizOptions');
+  let typed = '';
+
+  const box = document.createElement('div');
+  box.className = 'type-wrap';
+  box.innerHTML = `
+    <div class="kana-answer-box" id="kanaAnswerBox" style="min-height:54px; font-size:28px;">&nbsp;</div>
+    <div class="kana-keyboard" id="kanaKeyboard" style="display:grid; grid-template-columns:repeat(5,1fr); gap:7px; max-width:380px; margin:12px auto;"></div>
+    <div class="kana-controls" style="display:flex; gap:12px; justify-content:center; margin-top:12px;">
+      <button class="btn btn-gray" id="kanaDelete" style="padding:12px 24px;">⌫ حذف</button>
+      <button class="btn btn-blue" id="kanaSubmit" style="padding:12px 32px;">تحقّق ✓</button>
+    </div>`;
+
+  optWrap.appendChild(box);
+
+  const answerBox = document.getElementById('kanaAnswerBox');
+  const kb = document.getElementById('kanaKeyboard');
+
+  // اللوحة الرئيسية
+  KANA_TABLE.forEach(row => {
+    row.forEach(ch => {
+      const key = createKanaKey(ch, () => { typed += ch; answerBox.textContent = typed; });
+      kb.appendChild(key);
+    });
+  });
+
+  // Dakuten
+  const dakutenHeader = document.createElement('div');
+  dakutenHeader.style = 'grid-column: 1 / -1; text-align:center; color:#fcd34d; font-size:13px; margin:8px 0 4px;';
+  dakutenHeader.textContent = '── Dakuten ──';
+  kb.appendChild(dakutenHeader);
+
+  DAKUTEN_TABLE.forEach(row => {
+    row.forEach(ch => {
+      const key = createKanaKey(ch, () => { typed += ch; answerBox.textContent = typed; });
+      key.style.background = '#4c1d95';
+      kb.appendChild(key);
+    });
+  });
+
+  document.getElementById('kanaDelete').onclick = () => {
+    typed = typed.slice(0, -1);
+    answerBox.textContent = typed || '\u00A0';
+  };
+
+  document.getElementById('kanaSubmit').onclick = () => {
+    answerQuestion(typed.trim(), null, true);
+  };
+}
+
+function createKanaKey(char, onClick){
+  const key = document.createElement('button');
+  key.className = 'kana-key';
+  key.textContent = char;
+  key.style.fontSize = '19px';
+  key.style.padding = '12px 0';
+  key.onclick = onClick;
+  return key;
+}
+
+function hideKeyboard(){
+  // يتم التحكم بها تلقائياً عند إعادة بناء optWrap
+}
+
+// ... (باقي الكود كما هو)
 </script>
-</body>
-</html>
